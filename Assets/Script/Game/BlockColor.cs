@@ -2,5 +2,7 @@
 
 public class BlockColor : MonoBehaviour
 {
-    public int colorID; // 0,1,2,3 tương ứng 4 màu
+    public int colorID = 0;
+
+    // Có thể thêm các thuộc tính khác như sprite, màu sắc, etc.
 }

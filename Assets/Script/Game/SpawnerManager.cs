@@ -4,10 +4,9 @@ using UnityEngine;
 public class SpawnerManager : MonoBehaviour
 {
     public static SpawnerManager Instance;
-
     public GameObject cellPrefab;
-    public GameObject[] blockPrefabs; // 4 màu block
-    public float spawnChance = 0.7f;  // tỉ lệ spawn từng block
+    public GameObject[] blockPrefabs;
+    public float spawnChance = 0.7f;
 
     private void Awake()
     {
@@ -24,11 +23,14 @@ public class SpawnerManager : MonoBehaviour
         GameObject cell = Instantiate(cellPrefab, transform, false);
         EnsureCorners(cell);
 
-        Cell cellComp = cell.GetComponent<Cell>();
-        if (cellComp == null) Debug.LogError("Cell prefab missing Cell component!");
+        // Spawn block ngẫu nhiên (có thể kéo thả)
+        SpawnRandomBlocks(cell, true);
 
-        // spawn ngẫu nhiên 1->4 block
-        SpawnRandomBlocks(cell);
+        // Thêm component DraggableCell cho toàn bộ cell
+        if (cell.GetComponent<DraggableCell>() == null)
+        {
+            cell.AddComponent<DraggableCell>();
+        }
     }
 
     void EnsureCorners(GameObject cell)
@@ -41,9 +43,12 @@ public class SpawnerManager : MonoBehaviour
             {
                 GameObject point = new GameObject(name, typeof(RectTransform));
                 point.transform.SetParent(cell.transform);
+                point.transform.localScale = Vector3.one;
+                point.transform.localPosition = Vector3.zero;
+
                 RectTransform rt = point.GetComponent<RectTransform>();
-                rt.localScale = Vector3.one;
-                rt.localPosition = Vector3.zero;
+                rt.sizeDelta = new Vector2(20, 20);
+
                 switch (name)
                 {
                     case "TopLeft": rt.anchoredPosition = new Vector2(-40, 40); break;
@@ -55,13 +60,14 @@ public class SpawnerManager : MonoBehaviour
         }
     }
 
-    void SpawnRandomBlocks(GameObject cell)
+    // Sửa phần spawn block trong SpawnRandomBlocks
+    void SpawnRandomBlocks(GameObject cell, bool isDraggable)
     {
         string[] corners = { "TopLeft", "TopRight", "BottomLeft", "BottomRight" };
         List<string> availableCorners = new List<string>(corners);
         Cell cellComp = cell.GetComponent<Cell>();
 
-        int blockCount = Random.Range(1, 5); // 1->4 block ngẫu nhiên
+        int blockCount = Random.Range(1, 5);
 
         for (int i = 0; i < blockCount; i++)
         {
@@ -72,18 +78,20 @@ public class SpawnerManager : MonoBehaviour
             availableCorners.RemoveAt(cornerIndex);
 
             Transform point = cell.transform.Find(corner);
-            if (point != null && blockPrefabs.Length > 0)
+            if (point != null && blockPrefabs.Length > 0 && Random.value <= spawnChance)
             {
-                if (Random.value <= spawnChance)
+                int randBlock = Random.Range(0, blockPrefabs.Length);
+                GameObject block = Instantiate(blockPrefabs[randBlock], point);
+                block.transform.localPosition = Vector3.zero;
+                block.transform.localScale = Vector3.one;
+
+                // Xóa component DraggableCell từ các block riêng lẻ
+                if (block.GetComponent<DraggableCell>() != null)
                 {
-                    int randBlock = Random.Range(0, blockPrefabs.Length);
-                    GameObject block = Instantiate(blockPrefabs[randBlock], point);
-                    block.transform.localPosition = Vector3.zero;
-                    block.transform.localScale = Vector3.one;
-
-                    cellComp.AddBlock(block, corner); // thêm corner khi thêm block
-
+                    Destroy(block.GetComponent<DraggableCell>());
                 }
+
+                cellComp.AddBlock(block, corner);
             }
         }
     }

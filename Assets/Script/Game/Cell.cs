@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections.Generic;
 
 public class Cell : MonoBehaviour
 {
@@ -7,22 +7,30 @@ public class Cell : MonoBehaviour
 
     public void AddBlock(GameObject block, string corner)
     {
-        if (!blocks.ContainsKey(corner)) blocks.Add(corner, block);
+        if (!blocks.ContainsKey(corner))
+        {
+            blocks.Add(corner, block);
+        }
     }
 
     public void RemoveBlock(string corner)
     {
-        if (blocks.ContainsKey(corner)) blocks.Remove(corner);
+        if (blocks.ContainsKey(corner))
+        {
+            blocks.Remove(corner);
+        }
     }
 
     public void RemoveBlock(GameObject block)
     {
-        string keyToRemove = null;
-        foreach (var kv in blocks)
+        foreach (var pair in blocks)
         {
-            if (kv.Value == block) { keyToRemove = kv.Key; break; }
+            if (pair.Value == block)
+            {
+                blocks.Remove(pair.Key);
+                break;
+            }
         }
-        if (keyToRemove != null) blocks.Remove(keyToRemove);
     }
 
     public GameObject GetBlockAtCorner(string corner)
@@ -35,22 +43,99 @@ public class Cell : MonoBehaviour
         return new List<GameObject>(blocks.Values);
     }
 
-    public string GetNearestCorner(Vector3 localPos)
+    public bool HasBlocks()
     {
-        float minDist = float.MaxValue;
-        string nearest = null;
-        foreach (var kv in blocks)
-        {
-            Vector3 pos = kv.Value.transform.localPosition;
-            float dist = Vector3.Distance(localPos, pos);
-            if (dist < minDist)
-            {
-                minDist = dist;
-                nearest = kv.Key;
-            }
-        }
-        return nearest;
+        return blocks.Count > 0;
     }
 
-    public bool HasBlocks() => blocks.Count > 0;
+    public bool HasBlockOfColor(int colorID)
+    {
+        foreach (var block in blocks.Values)
+        {
+            BlockColor bc = block.GetComponent<BlockColor>();
+            if (bc != null && bc.colorID == colorID)
+                return true;
+        }
+        return false;
+    }
+
+    public bool HasBlockOfColorAtCorner(string corner, int colorID)
+    {
+        if (!blocks.ContainsKey(corner)) return false;
+
+        GameObject block = blocks[corner];
+        BlockColor blockColor = block.GetComponent<BlockColor>();
+        return blockColor != null && blockColor.colorID == colorID;
+    }
+
+    public List<GameObject> GetBlocksOfColor(int colorID)
+    {
+        List<GameObject> coloredBlocks = new List<GameObject>();
+        foreach (var block in blocks.Values)
+        {
+            BlockColor blockColor = block.GetComponent<BlockColor>();
+            if (blockColor != null && blockColor.colorID == colorID)
+                coloredBlocks.Add(block);
+        }
+        return coloredBlocks;
+    }
+
+    public void RemoveBlocksOfColor(int colorID)
+    {
+        List<string> cornersToRemove = new List<string>();
+
+        foreach (var pair in blocks)
+        {
+            BlockColor bc = pair.Value.GetComponent<BlockColor>();
+            if (bc != null && bc.colorID == colorID)
+            {
+                Destroy(pair.Value);
+                cornersToRemove.Add(pair.Key);
+            }
+        }
+
+        foreach (string corner in cornersToRemove)
+        {
+            blocks.Remove(corner);
+        }
+    }
+
+    public void ClearAllBlocks()
+    {
+        foreach (var block in blocks.Values)
+        {
+            Destroy(block);
+        }
+        blocks.Clear();
+    }
+
+    public bool IsCornerEmpty(string corner)
+    {
+        return !blocks.ContainsKey(corner);
+    }
+
+    public string GetNearestCorner(Vector2 localPos)
+    {
+        float minDist = Mathf.Infinity;
+        string nearestCorner = "";
+
+        string[] corners = { "TopLeft", "TopRight", "BottomLeft", "BottomRight" };
+
+        foreach (string corner in corners)
+        {
+            Transform cornerTransform = transform.Find(corner);
+            if (cornerTransform != null)
+            {
+                float dist = Vector2.Distance(localPos, cornerTransform.localPosition);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    nearestCorner = corner;
+                }
+            }
+        }
+
+        return nearestCorner;
+    }
+
 }
