@@ -5,17 +5,7 @@ using UnityEngine;
 public class LevelData
 {
     public string levelName;
-
-    [Header("Cấu hình Board")]
-    public int boardRows = 3;
-    public int boardCols = 3;
-
-    [Header("Layout thủ công")]
-    public float posY = 0f;
-    public float width = 600f;
-    public float height = 600f;
-    public Vector2 cellSize = new Vector2(100, 100);
-    public Vector2 spacing = new Vector2(10, 10);
+    public GameObject levelObj; // Obj level có sẵn trong scene
 
     [Header("Mục tiêu level")]
     public int redTarget = 0;
@@ -53,24 +43,27 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
-        // CẤU HÌNH LẠI BOARD CHO LEVEL NÀY
-        ConfigureBoardForLevel(levels[index]);
-
-        // CẬP NHẬT UI
-        if (levelText != null)
-            levelText.text = " " + levels[index].levelName;
-
-        // SET MỤC TIÊU
-        SetLevelGoals(levels[index]);
-
-        Debug.Log("Đang chơi: " + levels[index].levelName);
-    }
-
-    private void ConfigureBoardForLevel(LevelData levelData)
-    {
-        if (BoardManager.Instance != null)
+        // Tắt tất cả level
+        for (int i = 0; i < levels.Length; i++)
         {
-            BoardManager.Instance.ConfigureBoard(levelData.boardRows, levelData.boardCols);
+            if (levels[i].levelObj != null)
+                levels[i].levelObj.SetActive(false);
+        }
+
+        // Bật level hiện tại
+        if (levels[index].levelObj != null)
+        {
+            levels[index].levelObj.SetActive(true);
+            currentLevelIndex = index;
+
+            // Cập nhật UI text
+            if (levelText != null)
+                levelText.text = "Level " + levels[index].levelName;
+
+            // SET MỤC TIÊU CHO LEVEL NÀY
+            SetLevelGoals(levels[index]);
+
+            Debug.Log("Đang chơi: " + levels[index].levelName);
         }
     }
 
@@ -89,7 +82,7 @@ public class LevelManager : MonoBehaviour
 
     public void CompleteLevel()
     {
-        Debug.Log("Hoàn thành level " + levels[currentLevelIndex].levelName);
+        Debug.Log("Hoàn thành " + levels[currentLevelIndex].levelName);
 
         int nextIndex = currentLevelIndex + 1;
         if (nextIndex < levels.Length)
@@ -100,10 +93,11 @@ public class LevelManager : MonoBehaviour
         {
             Debug.Log("Bạn đã hoàn thành tất cả các level!");
             if (levelText != null)
-                levelText.text = "🎉 Hoàn thành game! 🎉";
+                levelText.text = "🎉 Hoàn thành tất cả level 🎉";
         }
     }
 
+    // Method để kiểm tra nếu level hiện tại đã hoàn thành
     public bool IsCurrentLevelCompleted()
     {
         if (GoalManager.Instance != null)
