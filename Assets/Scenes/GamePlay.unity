@@ -4123,7 +4123,7 @@ MonoBehaviour:
   - {fileID: 5972157399531441616, guid: 49084a29824348342ab4e52347c96a9a, type: 3}
   - {fileID: 4966801394824315793, guid: d9caebf2b0d28454f92c34fac8bb1301, type: 3}
   - {fileID: 6909683207061384612, guid: 4e3d2c522fd2a9f4b869d834adce889f, type: 3}
-  spawnChance: 0.1
+  spawnChance: 0.2
 --- !u!1 &1684921425
 GameObject:
   m_ObjectHideFlags: 0

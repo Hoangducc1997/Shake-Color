@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Collections;
 
 public class BoardManager : MonoBehaviour
 {
@@ -12,7 +13,10 @@ public class BoardManager : MonoBehaviour
 
     private void Awake() => Instance = this;
 
-    private void Start() => CreateBoard();
+    private void Start()
+    {
+        CreateBoard();
+    }
 
     void CreateBoard()
     {
@@ -28,12 +32,9 @@ public class BoardManager : MonoBehaviour
             GameObject cell = Instantiate(cellPrefab, transform);
             cell.name = $"Cell_{i}";
             EnsureCorners(cell);
-
-            // Spawn block ngẫu nhiên trên board (không kéo thả được)
             SpawnRandomBlocks(cell, false);
         }
     }
-
     void EnsureCorners(GameObject cell)
     {
         string[] corners = { "TopLeft", "TopRight", "BottomLeft", "BottomRight" };
@@ -61,7 +62,6 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-    // Sửa method SpawnRandomBlocks để public
     public void SpawnRandomBlocks(GameObject cell, bool isDraggable)
     {
         string[] corners = { "TopLeft", "TopRight", "BottomLeft", "BottomRight" };
@@ -86,7 +86,9 @@ public class BoardManager : MonoBehaviour
                 block.transform.localPosition = Vector3.zero;
                 block.transform.localScale = Vector3.one;
 
-                // Xóa component DraggableCell nếu có
+                // 🔥 THÊM HIỆU ỨNG KHI SPAWN BLOCK MỚI
+                StartCoroutine(PlaySpawnEffect(block));
+
                 if (!isDraggable && block.GetComponent<DraggableCell>() != null)
                 {
                     Destroy(block.GetComponent<DraggableCell>());
@@ -96,6 +98,82 @@ public class BoardManager : MonoBehaviour
             }
         }
     }
+    // 🔥 HIỆU ỨNG KHI SPAWN BLOCK MỚI
+    private IEnumerator PlaySpawnEffect(GameObject block)
+    {
+        Vector3 originalScale = Vector3.one;   // 👈 luôn luôn scale chuẩn 1
+        block.transform.localScale = Vector3.zero;
+
+        float duration = 0.3f;
+        float t = 0;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            block.transform.localScale = Vector3.Lerp(Vector3.zero, originalScale, t / duration);
+            yield return null;
+        }
+
+        block.transform.localScale = originalScale;
+    }
+
+
+    public void CheckMatchesInFourDirections(Cell centerCell, int colorID)
+    {
+        List<Cell> matchedCells = new List<Cell>();
+        int index = centerCell.transform.GetSiblingIndex();
+        int centerRow = index / cols;
+        int centerCol = index % cols;
+
+        CheckDirection(centerRow, centerCol, 0, -1, colorID, matchedCells);
+        CheckDirection(centerRow, centerCol, 0, 1, colorID, matchedCells);
+        CheckDirection(centerRow, centerCol, -1, 0, colorID, matchedCells);
+        CheckDirection(centerRow, centerCol, 1, 0, colorID, matchedCells);
+
+        if (centerCell.HasBlockOfColor(colorID))
+        {
+            matchedCells.Add(centerCell);
+        }
+
+        if (matchedCells.Count >= 2)
+        {
+            // 🔥 PHÁT HIỆU ỨNG NỔ TRƯỚC KHI XÓA
+            PlayExplosionEffects(matchedCells, colorID);
+
+            foreach (Cell matchedCell in matchedCells)
+            {
+                matchedCell.RemoveBlocksOfColor(colorID);
+            }
+            Debug.Log($"Cleared {matchedCells.Count} cells of color {colorID}");
+        }
+    }
+
+    // 🔥 HIỆU ỨNG NỔ CHO TẤT CẢ BLOCK MATCH
+    private void PlayExplosionEffects(List<Cell> matchedCells, int colorID)
+    {
+        foreach (Cell cell in matchedCells)
+        {
+            foreach (var block in cell.GetAllBlocks())
+            {
+                BlockColor blockColor = block.GetComponent<BlockColor>();
+                if (blockColor != null && blockColor.colorID == colorID)
+                {
+                    ExplosionEffect explosion = block.GetComponent<ExplosionEffect>();
+                    if (explosion != null)
+                    {
+                        explosion.PlayExplosion();
+                    }
+                    else
+                    {
+                        // Tạo hiệu ứng nổ nếu chưa có component
+                        ExplosionEffect newExplosion = block.AddComponent<ExplosionEffect>();
+                        newExplosion.PlayExplosion();
+                    }
+                }
+            }
+        }
+    }
+
     public Cell GetNearestCell(Vector3 pos, float maxDist = 100f)
     {
         Cell nearest = null;
@@ -121,36 +199,8 @@ public class BoardManager : MonoBehaviour
         return index < transform.childCount ? transform.GetChild(index).GetComponent<Cell>() : null;
     }
 
-    // Method mới để kiểm tra matches theo 4 hướng
-    public void CheckMatchesInFourDirections(Cell centerCell, int colorID)
-    {
-        List<Cell> matchedCells = new List<Cell>();
-        int index = centerCell.transform.GetSiblingIndex();
-        int centerRow = index / cols;
-        int centerCol = index % cols;
-
-        // Kiểm tra 4 hướng
-        CheckDirection(centerRow, centerCol, 0, -1, colorID, matchedCells); // Trái
-        CheckDirection(centerRow, centerCol, 0, 1, colorID, matchedCells);  // Phải
-        CheckDirection(centerRow, centerCol, -1, 0, colorID, matchedCells); // Trên
-        CheckDirection(centerRow, centerCol, 1, 0, colorID, matchedCells);  // Dưới
-
-        // Thêm center cell nếu có block cùng màu
-        if (centerCell.HasBlockOfColor(colorID))
-        {
-            matchedCells.Add(centerCell);
-        }
-
-        // Xóa nếu có ít nhất 2 cell match
-        if (matchedCells.Count >= 2)
-        {
-            foreach (Cell matchedCell in matchedCells)
-            {
-                matchedCell.RemoveBlocksOfColor(colorID);
-            }
-            Debug.Log($"Cleared {matchedCells.Count} cells of color {colorID}");
-        }
-    }
+    // Kiểm tra matches theo 4 hướng
+   
 
     private void CheckDirection(int startRow, int startCol, int rowDir, int colDir, int colorID, List<Cell> matchedCells)
     {
@@ -163,7 +213,7 @@ public class BoardManager : MonoBehaviour
 
             if (neighborCell == null || !neighborCell.HasBlockOfColor(colorID))
             {
-                break; // Dừng nếu hết cell hoặc không có block cùng màu
+                break;
             }
 
             if (!matchedCells.Contains(neighborCell))
@@ -177,23 +227,88 @@ public class BoardManager : MonoBehaviour
     }
     public void RespawnBlocks(List<DraggableCell.BlockInfo> blocksToRespawn)
     {
+        StartCoroutine(RespawnBlocksWithEffect(blocksToRespawn));
+    }
+
+    // 🔥 HIỆU ỨNG KHI RESPAWN BLOCK
+    private IEnumerator RespawnBlocksWithEffect(List<DraggableCell.BlockInfo> blocksToRespawn)
+    {
+        // Đợi một chút để hiệu ứng nổ hoàn thành
+        yield return new WaitForSeconds(1);
+
         foreach (var blockInfo in blocksToRespawn)
         {
             if (blockInfo.cell != null && !string.IsNullOrEmpty(blockInfo.corner))
             {
-                // Spawn block mới ngẫu nhiên
                 SpawnNewBlockAtCorner(blockInfo.cell.gameObject, blockInfo.corner);
             }
         }
 
-        // Kiểm tra thêm matches sau khi respawn (để xử lý chain reaction)
         CheckForChainReactions(blocksToRespawn);
     }
 
-    // Thêm method để kiểm tra chain reaction
+    private void SpawnNewBlockAtCorner(GameObject cell, string corner)
+    {
+        Transform point = cell.transform.Find(corner);
+        if (point != null && blockPrefabs.Length > 0)
+        {
+            int randBlock = Random.Range(0, blockPrefabs.Length);
+            GameObject newBlock = Instantiate(blockPrefabs[randBlock], point);
+            newBlock.transform.localPosition = Vector3.zero;
+            newBlock.transform.localScale = Vector3.one;
+
+            // 🔥 HIỆU ỨNG KHI SPAWN BLOCK MỚI
+            StartCoroutine(PlaySpawnEffect(newBlock));
+
+            Cell cellComp = cell.GetComponent<Cell>();
+            if (cellComp != null)
+            {
+                cellComp.AddBlock(newBlock, corner);
+            }
+        }
+    }
+
+    public void ResetBoard()
+    {
+        StopAllCoroutines();
+        StartCoroutine(ResetBoardWithEffects());
+    }
+
+    private IEnumerator ResetBoardWithEffects()
+    {
+        // PHÁT HIỆU ỨNG NỔ CHO TẤT CẢ BLOCK HIỆN TẠI
+        foreach (Transform cellTransform in transform)
+        {
+            Cell cell = cellTransform.GetComponent<Cell>();
+            if (cell != null)
+            {
+                foreach (var block in cell.GetAllBlocks())
+                {
+                    ExplosionEffect explosion = block.GetComponent<ExplosionEffect>();
+                    if (explosion != null)
+                    {
+                        explosion.PlayExplosion();
+                    }
+                }
+            }
+        }
+
+        // ĐỢI HIỆU ỨNG HOÀN THÀNH
+        yield return new WaitForSeconds(0.5f);
+
+        // XÓA CELL CŨ
+        foreach (Transform child in transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // ĐỢI 1 FRAME RỒI TẠO BOARD MỚI
+        yield return null;
+        CreateBoard();
+    }
+
     private void CheckForChainReactions(List<DraggableCell.BlockInfo> respawnedBlocks)
     {
-        // Có thể thêm logic chain reaction ở đây nếu muốn
         foreach (var blockInfo in respawnedBlocks)
         {
             if (blockInfo.cell != null)
@@ -210,26 +325,8 @@ public class BoardManager : MonoBehaviour
             }
         }
     }
-    private void SpawnNewBlockAtCorner(GameObject cell, string corner)
-    {
-        Transform point = cell.transform.Find(corner);
-        if (point != null && blockPrefabs.Length > 0)
-        {
-            int randBlock = Random.Range(0, blockPrefabs.Length);
-            GameObject newBlock = Instantiate(blockPrefabs[randBlock], point);
-            newBlock.transform.localPosition = Vector3.zero;
-            newBlock.transform.localScale = Vector3.one;
+   
 
-            // Thêm vào cell
-            Cell cellComp = cell.GetComponent<Cell>();
-            if (cellComp != null)
-            {
-                cellComp.AddBlock(newBlock, corner);
-            }
-        }
-    }
-
-    // Thêm method này vào BoardManager.cs
     public List<Cell> GetNeighborCells(Cell centerCell)
     {
         List<Cell> neighbors = new List<Cell>();
@@ -256,8 +353,7 @@ public class BoardManager : MonoBehaviour
 
         return neighbors;
     }
-    // Thêm method này vào BoardManager.cs
-    // Thêm method này vào BoardManager.cs
+
     public List<Cell> GetAllCells()
     {
         List<Cell> allCells = new List<Cell>();
@@ -270,18 +366,6 @@ public class BoardManager : MonoBehaviour
             }
         }
         return allCells;
-    }
-
-    public void ResetBoard()
-    {
-        // Xoá toàn bộ cell cũ
-        foreach (Transform child in transform)
-        {
-            Destroy(child.gameObject);
-        }
-
-        // Tạo lại board mới
-        CreateBoard();
     }
 
 }

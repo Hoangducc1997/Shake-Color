@@ -48,17 +48,21 @@ public class GameManager : MonoBehaviour
         if (gameOverPanel) gameOverPanel.SetActive(false);
         if (victoryPanel) victoryPanel.SetActive(false);
 
-        // Reset lại board mới
+        // RESET BOARD AN TOÀN
         if (BoardManager.Instance != null)
-            BoardManager.Instance.ResetBoard();
-
-        foreach (var spawner in SpawnerManager.Instances)
         {
-            spawner.RestartSpawner();
+            BoardManager.Instance.ResetBoard();
         }
 
-        // Load lại level hiện tại
-        LevelManager.Instance.LoadLevel(LevelManager.Instance.currentLevelIndex);
+        // RESET SPAWNER
+        foreach (var spawner in SpawnerManager.Instances)
+        {
+            if (spawner != null)
+            {
+                spawner.RestartSpawner();
+            }
+        }
+
     }
 
 

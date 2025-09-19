@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 4655348665645689077}
   - component: {fileID: 5066729942194005550}
   - component: {fileID: 2315525047271589503}
+  - component: {fileID: -5078627768316399757}
   m_Layer: 5
   m_Name: CellSpawner
   m_TagString: Untagged
@@ -62,7 +63,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.99371064, g: 0.503105, b: 0.5163647, a: 0.8235294}
+  m_Color: {r: 0.99371064, g: 0.503105, b: 0.5163647, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -115,7 +116,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5210089c291db404684e36cd38646b49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blockColor: Yellow
 --- !u!114 &5066729942194005550
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,8 +140,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7693924acde14df4d82322db3376d11e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blocks:
-  - {fileID: 7448386848132533887, guid: ef23de6ced3969f41a913657a7cc91e5, type: 3}
-  - {fileID: 5972157399531441616, guid: 49084a29824348342ab4e52347c96a9a, type: 3}
-  - {fileID: 4966801394824315793, guid: d9caebf2b0d28454f92c34fac8bb1301, type: 3}
-  - {fileID: 6909683207061384612, guid: 4e3d2c522fd2a9f4b869d834adce889f, type: 3}
+--- !u!114 &-5078627768316399757
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4015626262941540451}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9543abc461a6404094d5897cf7676e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -12,5 +12,6 @@ public class CellDrop : MonoBehaviour, IDropHandler
             block.transform.position = transform.position;
             block.transform.SetParent(transform);
         }
+
     }
 }

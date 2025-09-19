@@ -137,5 +137,19 @@ public class Cell : MonoBehaviour
 
         return nearestCorner;
     }
+    public List<GameObject> GetAllBlocksOfColor(int colorID)
+    {
+        List<GameObject> result = new List<GameObject>();
+        foreach (var pair in blocks)
+        {
+            var blockColor = pair.Value.GetComponent<BlockColor>();
+            if (blockColor != null && blockColor.colorID == colorID)
+            {
+                result.Add(pair.Value);
+            }
+        }
+        return result;
+    }
+
 
 }
