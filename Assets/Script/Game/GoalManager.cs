@@ -31,7 +31,6 @@ public class GoalManager : MonoBehaviour
     {
         Instance = this;
     }
-
     private void Start()
     {
         UpdateUI();
@@ -57,7 +56,6 @@ public class GoalManager : MonoBehaviour
         {
             targetYellowScore = Mathf.Max(0, targetYellowScore - amount);
         }
-
         UpdateUI();
         CheckLevelCompletion();
     }
@@ -76,7 +74,7 @@ public class GoalManager : MonoBehaviour
         {
             if (LevelManager.Instance != null)
             {
-                // KHÔNG pause game ngay lập tức
+                // 0 pause game ngay lập tức
                 ShowLevelCompletePopup();
             }
             else
@@ -115,7 +113,6 @@ public class GoalManager : MonoBehaviour
         // Có thể pause game ở đây vì đã hoàn thành toàn bộ game
         Time.timeScale = 0f;
     }
-
     public bool IsTargetCompleted()
     {
         return targetRedScore <= 0 &&
@@ -123,8 +120,6 @@ public class GoalManager : MonoBehaviour
                targetPurpleScore <= 0 &&
                targetYellowScore <= 0;
     }
-
-
     public void SetTargets(int red, int blue, int purple, int yellow)
     {
         targetRedScore = red;
@@ -133,7 +128,6 @@ public class GoalManager : MonoBehaviour
         targetYellowScore = yellow;
         UpdateUI();
     }
-
     public void SetColorIDs(int redID, int blueID, int purpleID, int yellowID)
     {
         redColorID = redID;

@@ -19,7 +19,6 @@ public class BlockPosition : MonoBehaviour
         int cellIndex = parentCell.transform.GetSiblingIndex();
         int rows = BoardManager.ActiveBoard.rows;
         int cols = BoardManager.ActiveBoard.cols;
-
         int cellRow = cellIndex / cols;
         int cellCol = cellIndex % cols;
 
@@ -47,7 +46,6 @@ public class BlockPosition : MonoBehaviour
         // Kiểm tra kế cận theo 4 hướng
         int dx = Mathf.Abs(gridPosition.x - other.gridPosition.x);
         int dy = Mathf.Abs(gridPosition.y - other.gridPosition.y);
-
         return (dx == 1 && dy == 0) || (dx == 0 && dy == 1);
     }
 }

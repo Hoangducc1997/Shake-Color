@@ -5,11 +5,9 @@ public class SpawnerManager : MonoBehaviour
 {
     // MultiSingleton: lưu tất cả Spawner hiện tại
     public static List<SpawnerManager> Instances { get; private set; } = new List<SpawnerManager>();
-
     public GameObject cellPrefab;
     public GameObject[] blockPrefabs;
     public float spawnChance = 0.7f;
-
     private List<GameObject> spawnedCells = new List<GameObject>();
 
     private void Awake()
@@ -25,7 +23,6 @@ public class SpawnerManager : MonoBehaviour
         if (Instances.Contains(this))
             Instances.Remove(this);
     }
-
     private void Start()
     {
         SpawnCell();
@@ -75,10 +72,8 @@ public class SpawnerManager : MonoBehaviour
                 point.transform.SetParent(cell.transform);
                 point.transform.localScale = Vector3.one;
                 point.transform.localPosition = Vector3.zero;
-
                 RectTransform rt = point.GetComponent<RectTransform>();
                 rt.sizeDelta = new Vector2(20, 20);
-
                 switch (name)
                 {
                     case "TopLeft": rt.anchoredPosition = new Vector2(-40, 40); break;
@@ -96,17 +91,13 @@ public class SpawnerManager : MonoBehaviour
         string[] corners = { "TopLeft", "TopRight", "BottomLeft", "BottomRight" };
         List<string> availableCorners = new List<string>(corners);
         Cell cellComp = cell.GetComponent<Cell>();
-
         int blockCount = Random.Range(1, 5);
-
         for (int i = 0; i < blockCount; i++)
         {
             if (availableCorners.Count == 0) break;
-
             int cornerIndex = Random.Range(0, availableCorners.Count);
             string corner = availableCorners[cornerIndex];
             availableCorners.RemoveAt(cornerIndex);
-
             Transform point = cell.transform.Find(corner);
             if (point != null && blockPrefabs.Length > 0 && Random.value <= spawnChance)
             {
@@ -120,7 +111,6 @@ public class SpawnerManager : MonoBehaviour
                 {
                     Destroy(block.GetComponent<DraggableCell>());
                 }
-
                 cellComp.AddBlock(block, corner);
             }
         }

@@ -26,21 +26,16 @@ public class JellyEffect : MonoBehaviour
     private IEnumerator JellyRoutine()
     {
         float time = 0f;
-
         while (time < duration)
         {
             time += Time.deltaTime;
-
             // Tính tỉ lệ theo sin -> phóng to thu nhỏ
             float progress = time / duration;
             float damper = Mathf.Exp(-3 * progress); // giảm dần
             float scale = 1 + Mathf.Sin(progress * Mathf.PI * 4) * intensity * damper;
-
             transform.localScale = originalScale * scale;
-
             yield return null;
         }
-
         transform.localScale = originalScale;
         jellyRoutine = null;
     }

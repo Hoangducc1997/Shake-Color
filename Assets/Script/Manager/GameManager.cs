@@ -41,8 +41,6 @@ public class GameManager : MonoBehaviour
 
         if (gameOverPanel) gameOverPanel.SetActive(false);
         if (victoryPanel) victoryPanel.SetActive(false);
-
-        // 🔥 SỬA: Dùng BoardManager.ActiveBoard thay vì BoardManager.Instance
         if (BoardManager.ActiveBoard != null)
         {
             BoardManager.ActiveBoard.ResetBoard();
@@ -53,7 +51,7 @@ public class GameManager : MonoBehaviour
             BoardManager.Instances[0].ResetBoard();
         }
 
-        // RESET SPAWNER
+        // Restart tất cả Spawner
         foreach (var spawner in SpawnerManager.Instances)
         {
             if (spawner != null)
@@ -71,7 +69,6 @@ public class GameManager : MonoBehaviour
         AudioManager.Instance.PlayVFX("Choose");
         Time.timeScale = 1f;
         if (victoryPanel) victoryPanel.SetActive(false);
-
         LevelManager.Instance.CompleteLevel();
     }
 

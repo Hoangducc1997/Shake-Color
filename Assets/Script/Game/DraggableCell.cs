@@ -20,16 +20,14 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         canvas = GetComponentInParent<Canvas>() ?? FindAnyObjectByType<Canvas>();
         canvasGroup = gameObject.AddComponent<CanvasGroup>();
         sourceCell = GetComponent<Cell>();
-
-        // TÌM BOARD MANAGER KHI KHỞI TẠO
+        // Tìm boardManager khi khởi tạo
         FindActiveBoard();
     }
     private void FindActiveBoard()
     {
-        // ƯU TIÊN TÌM ACTIVE BOARD
+        // Ưu tiên lấy BoardManager đang active
         boardManager = BoardManager.ActiveBoard;
-
-        // NẾU KHÔNG CÓ ACTIVE BOARD, TÌM BOARD ĐẦU TIÊN ĐANG ACTIVE TRONG SCENE
+        // Nếu không có, tìm boardManager trong các instance đang active
         if (boardManager == null)
         {
             foreach (BoardManager board in BoardManager.Instances)
@@ -41,12 +39,10 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 }
             }
         }
-
         if (boardManager == null && BoardManager.Instances.Count > 0)
         {
             boardManager = BoardManager.Instances[0];
         }
-
         if (boardManager != null)
         {
             Debug.Log($"DraggableCell found board: {boardManager.gameObject.name}");
@@ -59,7 +55,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     private void OnEnable()
     {
-        // KHI OBJECT ĐƯỢC BẬT, TÌM LẠI ACTIVE BOARD
+        // Khi được kích hoạt, tìm boardManager
         FindActiveBoard();
     }
 
@@ -71,7 +67,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         canvasGroup.alpha = 0.6f;
         rectTransform.SetParent(canvas.transform);
 
-        // 🔥 Hiệu ứng jelly khi bắt đầu kéo
+        // Hiệu ứng jelly khi bắt đầu kéo
         foreach (var pair in sourceCell.blocks)
         {
             pair.Value.GetComponent<JellyEffect>()?.PlayJelly();
@@ -83,7 +79,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         rectTransform.anchoredPosition += eventData.delta / canvas.scaleFactor;
 
-        // 🔥 Hiệu ứng jelly trong khi kéo
+        // Hiệu ứng jelly trong khi kéo
         if (jellyCoroutine == null)
         {
             jellyCoroutine = StartCoroutine(PlayJellyCoroutine());
@@ -102,7 +98,6 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 jelly.PlayJelly();
             }
         }
-
         yield return new WaitForSeconds(0.68f);
         jellyCoroutine = null;
     }
@@ -110,15 +105,13 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public void OnEndDrag(PointerEventData eventData)
     {
         AudioManager.Instance.PlayVFX("Pop");
-        // 🔥 Hiệu ứng jelly khi kết thúc kéo
+        // Hiệu ứng jelly khi kết thúc kéo
         foreach (var pair in sourceCell.blocks)
         {
             pair.Value.GetComponent<JellyEffect>()?.PlayJelly();
         }
-
         canvasGroup.blocksRaycasts = true;
         canvasGroup.alpha = 1f;
-
         if (boardManager == null)
         {
             boardManager = BoardManager.ActiveBoard;
@@ -132,9 +125,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 return;
             }
         }
-
         Cell targetCell = boardManager.GetNearestCell(rectTransform.position);
-
         if (targetCell != null && !targetCell.HasBlocks())
         {
             MoveBlocksToTargetCell(targetCell);
@@ -142,16 +133,13 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
             if (blocksToRemove.Count >= 2)
             {
-                // 🔥 THÊM HIỆU ỨNG NỔ KHI CÓ MATCH
                 PlayExplosionEffects(blocksToRemove);
-
                 RemoveMatchedBlocks(blocksToRemove);
                 ResetAllSpawners();
                 Destroy(gameObject);
             }
             else
             {
-                // 🔥 HIỆU ỨNG KHI THẢ THÀNH CÔNG (KHÔNG MATCH)
                 PlayDropEffect(targetCell);
                 ResetAllSpawners();
                 Destroy(gameObject);
@@ -168,7 +156,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         Debug.Log($"DraggableCell updated board reference to: {newBoard.gameObject.name}");
     }
 
-    // 🔥 HIỆU ỨNG NỔ CHO CÁC BLOCK MATCH
+    // Hiệu ứng nổ khi có match
     private void PlayExplosionEffects(List<BlockInfo> blocksToRemove)
     {
         foreach (BlockInfo blockInfo in blocksToRemove)
@@ -190,7 +178,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         }
     }
 
-    // 🔥 HIỆU ỨNG KHI THẢ THÀNH CÔNG (KHÔNG CÓ MATCH)
+
     private void PlayDropEffect(Cell targetCell)
     {
         foreach (var block in targetCell.GetAllBlocks())
@@ -203,7 +191,6 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         Vector3 originalScale = block.transform.localScale;
         float duration = 0.2f;
-
         // Scale to lên
         float t = 0;
         while (t < duration)
@@ -221,19 +208,16 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             block.transform.localScale = Vector3.Lerp(originalScale * 1.2f, originalScale, t / duration);
             yield return null;
         }
-
         block.transform.localScale = originalScale;
     }
 
     private void MoveBlocksToTargetCell(Cell targetCell)
     {
         if (sourceCell == null || targetCell == null) return;
-
         foreach (var pair in sourceCell.blocks)
         {
             string corner = pair.Key;
             GameObject block = pair.Value;
-
             Transform cornerTransform = targetCell.transform.Find(corner);
             if (cornerTransform != null)
             {
@@ -244,14 +228,12 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 targetCell.AddBlock(block, corner);
             }
         }
-
         sourceCell.blocks.Clear();
     }
 
     private List<BlockInfo> CheckForMatchesWithExistingBlocks(Cell newCell)
     {
         List<BlockInfo> blocksToRemove = new List<BlockInfo>();
-
         foreach (Cell boardCell in boardManager.GetAllCells())
         {
             if (boardCell == newCell) continue;
@@ -266,7 +248,6 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 }
             }
         }
-
         return blocksToRemove;
     }
 
@@ -287,22 +268,17 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             }
         }
     }
-
     private bool AreBlocksAdjacent(Cell cell1, string corner1, Cell cell2, string corner2)
     {
         int index1 = cell1.transform.GetSiblingIndex();
         int row1 = index1 / boardManager.cols;
         int col1 = index1 % boardManager.cols;
-
         int index2 = cell2.transform.GetSiblingIndex();
         int row2 = index2 / boardManager.cols;
         int col2 = index2 % boardManager.cols;
-
         bool cellsAdjacent = (Mathf.Abs(row1 - row2) == 1 && col1 == col2) ||
                             (Mathf.Abs(col1 - col2) == 1 && row1 == row2);
-
         if (!cellsAdjacent) return false;
-
         return AreCornersAdjacent(corner1, corner2, row1, col1, row2, col2);
     }
 
@@ -334,10 +310,8 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                        (corner1 == "TopRight" && corner2 == "BottomRight");
             }
         }
-
         return false;
     }
-
     private void RemoveMatchedBlocks(List<BlockInfo> blocksToRemove)
     {
         Dictionary<int, int> colorCount = new Dictionary<int, int>();
@@ -349,13 +323,10 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 if (!colorCount.ContainsKey(blockInfo.colorID))
                     colorCount[blockInfo.colorID] = 0;
                 colorCount[blockInfo.colorID]++;
-
-                // 🔥 ĐÃ CHUYỂN HIỆU ỨNG NỔ LÊN TRÊN (PlayExplosionEffects)
                 blockInfo.cell.RemoveBlock(blockInfo.corner);
                 Destroy(blockInfo.block);
             }
         }
-
         foreach (var pair in colorCount)
         {
             GoalManager.Instance.SubtractTargetScore(pair.Key, pair.Value);
@@ -376,7 +347,6 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                     break;
                 }
             }
-
             if (!alreadyExists)
             {
                 blocksToRemove.Add(new BlockInfo

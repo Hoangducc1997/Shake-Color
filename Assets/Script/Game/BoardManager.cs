@@ -15,7 +15,7 @@ public class BoardManager : MonoBehaviour
 
     private List<Coroutine> activeCoroutines = new List<Coroutine>();
     private bool isResetting = false;
-    private bool hasInitialized = false; // 🔥 THÊM FLAG ĐỂ KIỂM TRA
+    private bool hasInitialized = false; // Flag check
     private bool isFirstCreation = true;
     private void Awake()
     {
@@ -31,7 +31,7 @@ public class BoardManager : MonoBehaviour
     {
         SetAsActiveBoard();
 
-        // 🔥 TẠO BOARD KHI ĐƯỢC BẬT (NẾU CHƯA CÓ)
+        //  Nếu chưa có board, tạo mới
         if (!hasInitialized)
         {
             CreateBoard();
@@ -41,7 +41,6 @@ public class BoardManager : MonoBehaviour
 
     private void Start()
     {
-        // 🔥 CHỈ TẠO BOARD LẦN ĐẦU TIÊN
         if (!hasInitialized)
         {
             CreateBoard();
@@ -78,13 +77,13 @@ public class BoardManager : MonoBehaviour
     }
     private void NotifyAllDraggableCells()
     {
-        // TÌM TẤT CẢ DRAGGABLE CELLS VÀ CẬP NHẬT BOARD MANAGER CHO CHÚNG
         DraggableCell[] allDraggableCells = FindObjectsOfType<DraggableCell>();
         foreach (DraggableCell draggableCell in allDraggableCells)
         {
             draggableCell.UpdateBoardReference(this);
         }
     }
+
     void CreateBoard()
     {
         if (isResetting) return;
@@ -95,9 +94,7 @@ public class BoardManager : MonoBehaviour
             Debug.LogError("Add GridLayoutGroup");
             return;
         }
-
         ClearAllCells();
-
         for (int i = 0; i < rows * cols; i++)
         {
             GameObject cell = Instantiate(cellPrefab, transform);
@@ -105,8 +102,6 @@ public class BoardManager : MonoBehaviour
             EnsureCorners(cell);
             SpawnRandomBlocks(cell, false);
         }
-
-        // 🔥 TẮT HIỆU ỨNG CHO NHỮNG LẦN TẠO SAU
         isFirstCreation = false;
         Debug.Log($"Board created: {gameObject.name}, FirstCreation: {isFirstCreation}");
     }
@@ -182,60 +177,48 @@ public class BoardManager : MonoBehaviour
         string[] corners = { "TopLeft", "TopRight", "BottomLeft", "BottomRight" };
         List<string> available = new List<string>(corners);
         Cell cellComp = cell.GetComponent<Cell>();
-
         int blockCount = Random.Range(1, 5);
-
         for (int i = 0; i < blockCount; i++)
         {
             if (available.Count == 0) break;
-
             int randIndex = Random.Range(0, available.Count);
             string corner = available[randIndex];
             available.RemoveAt(randIndex);
-
             Transform point = cell.transform.Find(corner);
             if (point != null && blockPrefabs.Length > 0 && Random.value <= spawnChance)
             {
                 int randBlock = Random.Range(0, blockPrefabs.Length);
                 GameObject block = Instantiate(blockPrefabs[randBlock], point);
                 block.transform.localPosition = Vector3.zero;
-
-                // 🔥 LUÔN ĐẶT SCALE CHUẨN TRƯỚC, RỒI MỚI ÁP DỤNG HIỆU ỨNG
                 block.transform.localScale = Vector3.one;
-
-                // 🔤 CHỈ ÁP DỤNG HIỆU ỨNG NẾU KHÔNG PHẢI LẦN ĐẦU
+                // áp dụng hiệu ứng spawn nếu không phải lần đầu tạo board
                 if (!isFirstCreation)
                 {
                     StartCoroutine(PlaySpawnEffect(block));
                 }
-
                 if (!isDraggable && block.GetComponent<DraggableCell>() != null)
                 {
                     Destroy(block.GetComponent<DraggableCell>());
                 }
-
                 cellComp.AddBlock(block, corner);
             }
         }
     }
-    // 🔥 HIỆU ỨNG KHI SPAWN BLOCK MỚI
+
+    // Hiệu ứng khi spawn block mới
     private IEnumerator PlaySpawnEffect(GameObject block)
     {
         if (block == null) yield break;
-
         Vector3 originalScale = Vector3.one;
         block.transform.localScale = Vector3.zero;
-
         float duration = 0.3f;
         float t = 0;
-
         while (t < duration && block != null)
         {
             t += Time.deltaTime;
             block.transform.localScale = Vector3.Lerp(Vector3.zero, originalScale, t / duration);
             yield return null;
         }
-
         if (block != null)
         {
             block.transform.localScale = originalScale;
@@ -247,22 +230,17 @@ public class BoardManager : MonoBehaviour
         int index = centerCell.transform.GetSiblingIndex();
         int centerRow = index / cols;
         int centerCol = index % cols;
-
         CheckDirection(centerRow, centerCol, 0, -1, colorID, matchedCells);
         CheckDirection(centerRow, centerCol, 0, 1, colorID, matchedCells);
         CheckDirection(centerRow, centerCol, -1, 0, colorID, matchedCells);
         CheckDirection(centerRow, centerCol, 1, 0, colorID, matchedCells);
-
         if (centerCell.HasBlockOfColor(colorID))
         {
             matchedCells.Add(centerCell);
         }
-
         if (matchedCells.Count >= 2)
         {
-            // 🔥 PHÁT HIỆU ỨNG NỔ TRƯỚC KHI XÓA
             PlayExplosionEffects(matchedCells, colorID);
-
             foreach (Cell matchedCell in matchedCells)
             {
                 matchedCell.RemoveBlocksOfColor(colorID);
@@ -271,7 +249,7 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-    // 🔥 HIỆU ỨNG NỔ CHO TẤT CẢ BLOCK MATCH
+    // Hiệu ứng nổ khi match
     private void PlayExplosionEffects(List<Cell> matchedCells, int colorID)
     {
         foreach (Cell cell in matchedCells)
@@ -299,12 +277,9 @@ public class BoardManager : MonoBehaviour
 
     public Cell GetNearestCell(Vector3 pos, float maxDist = 100f)
     {
-        // ĐẢM BẢO CHÚNG TA ĐANG SỬ DỤNG ACTIVE BOARD
         if (ActiveBoard != this) return null;
-
         Cell nearest = null;
         float minDist = Mathf.Infinity;
-
         foreach (Transform t in transform)
         {
             float dist = Vector3.Distance(pos, t.position);
@@ -314,7 +289,6 @@ public class BoardManager : MonoBehaviour
                 nearest = t.GetComponent<Cell>();
             }
         }
-
         return minDist <= maxDist ? nearest : null;
     }
 
@@ -327,42 +301,35 @@ public class BoardManager : MonoBehaviour
     }
 
     // Kiểm tra matches theo 4 hướng
-   
-
     private void CheckDirection(int startRow, int startCol, int rowDir, int colDir, int colorID, List<Cell> matchedCells)
     {
         int currentRow = startRow + rowDir;
         int currentCol = startCol + colDir;
-
         while (true)
         {
             Cell neighborCell = GetCellAt(currentRow, currentCol);
-
             if (neighborCell == null || !neighborCell.HasBlockOfColor(colorID))
             {
                 break;
             }
-
             if (!matchedCells.Contains(neighborCell))
             {
                 matchedCells.Add(neighborCell);
             }
-
             currentRow += rowDir;
             currentCol += colDir;
         }
     }
+
     public void RespawnBlocks(List<DraggableCell.BlockInfo> blocksToRespawn)
     {
         StartCoroutine(RespawnBlocksWithEffect(blocksToRespawn));
     }
 
-    // 🔥 HIỆU ỨNG KHI RESPAWN BLOCK
+    // Hiệu ứng khi respawn block
     private IEnumerator RespawnBlocksWithEffect(List<DraggableCell.BlockInfo> blocksToRespawn)
     {
-        // Đợi một chút để hiệu ứng nổ hoàn thành
         yield return new WaitForSeconds(1);
-
         foreach (var blockInfo in blocksToRespawn)
         {
             if (blockInfo.cell != null && !string.IsNullOrEmpty(blockInfo.corner))
@@ -370,7 +337,6 @@ public class BoardManager : MonoBehaviour
                 SpawnNewBlockAtCorner(blockInfo.cell.gameObject, blockInfo.corner);
             }
         }
-
         CheckForChainReactions(blocksToRespawn);
     }
 
@@ -383,10 +349,7 @@ public class BoardManager : MonoBehaviour
             GameObject newBlock = Instantiate(blockPrefabs[randBlock], point);
             newBlock.transform.localPosition = Vector3.zero;
             newBlock.transform.localScale = Vector3.one;
-
-            // 🔥 HIỆU ỨNG KHI SPAWN BLOCK MỚI
             StartCoroutine(PlaySpawnEffect(newBlock));
-
             Cell cellComp = cell.GetComponent<Cell>();
             if (cellComp != null)
             {
@@ -420,17 +383,12 @@ public class BoardManager : MonoBehaviour
                 }
             }
         }
-
-        // ĐỢI HIỆU ỨNG HOÀN THÀNH
         yield return new WaitForSeconds(0.5f);
-
-        // XÓA CELL CŨ
+        // Xóa tất cả cell và tạo lại board
         foreach (Transform child in transform)
         {
             Destroy(child.gameObject);
         }
-
-        // ĐỢI 1 FRAME RỒI TẠO BOARD MỚI
         yield return null;
         CreateBoard();
     }
@@ -495,5 +453,4 @@ public class BoardManager : MonoBehaviour
         }
         return allCells;
     }
-
 }

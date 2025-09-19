@@ -5,7 +5,7 @@ using UnityEngine;
 public class LevelData
 {
     public string levelName;
-    public GameObject levelObj; // Obj level có sẵn trong scene
+    public GameObject levelObj; 
 
     [Header("Mục tiêu level")]
     public int redTarget = 0;
@@ -29,7 +29,6 @@ public class LevelManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
     }
-
     private void Start()
     {
         LoadLevel(currentLevelIndex);
@@ -39,31 +38,26 @@ public class LevelManager : MonoBehaviour
     {
         if (index < 0 || index >= levels.Length) return;
 
-        // TẮT TẤT CẢ LEVEL
+        //Tắt all Lv
         foreach (LevelData level in levels)
         {
             if (level.levelObj != null)
                 level.levelObj.SetActive(false);
         }
 
-        // BẬT LEVEL HIỆN TẠI
+        // Bật Lv hiện tại
         if (levels[index].levelObj != null)
         {
             levels[index].levelObj.SetActive(true);
-
-            // ĐẢM BẢO BOARD MANAGER ĐƯỢC SET ACTIVE
             BoardManager levelBoard = levels[index].levelObj.GetComponent<BoardManager>();
             if (levelBoard != null)
             {
                 levelBoard.SetAsActiveBoard();
             }
-
             currentLevelIndex = index;
             if (levelText != null)
                 levelText.text = " " + levels[index].levelName;
-
             SetLevelGoals(levels[index]);
-
             Debug.Log($"Loaded level: {levels[index].levelName}");
         }
     }
@@ -98,7 +92,7 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    // Method để kiểm tra nếu level hiện tại đã hoàn thành
+    // Method check level hiện tại đã hoàn thành hay chưa
     public bool IsCurrentLevelCompleted()
     {
         if (GoalManager.Instance != null)

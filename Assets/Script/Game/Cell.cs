@@ -4,7 +4,6 @@ using System.Collections.Generic;
 public class Cell : MonoBehaviour
 {
     public Dictionary<string, GameObject> blocks = new Dictionary<string, GameObject>();
-
     public void AddBlock(GameObject block, string corner)
     {
         if (!blocks.ContainsKey(corner))
@@ -12,7 +11,6 @@ public class Cell : MonoBehaviour
             blocks.Add(corner, block);
         }
     }
-
     public void RemoveBlock(string corner)
     {
         if (blocks.ContainsKey(corner))
@@ -32,7 +30,6 @@ public class Cell : MonoBehaviour
             }
         }
     }
-
     public GameObject GetBlockAtCorner(string corner)
     {
         return blocks.ContainsKey(corner) ? blocks[corner] : null;
@@ -58,7 +55,6 @@ public class Cell : MonoBehaviour
         }
         return false;
     }
-
     public bool HasBlockOfColorAtCorner(string corner, int colorID)
     {
         if (!blocks.ContainsKey(corner)) return false;
@@ -67,7 +63,6 @@ public class Cell : MonoBehaviour
         BlockColor blockColor = block.GetComponent<BlockColor>();
         return blockColor != null && blockColor.colorID == colorID;
     }
-
     public List<GameObject> GetBlocksOfColor(int colorID)
     {
         List<GameObject> coloredBlocks = new List<GameObject>();
@@ -79,7 +74,6 @@ public class Cell : MonoBehaviour
         }
         return coloredBlocks;
     }
-
     public void RemoveBlocksOfColor(int colorID)
     {
         List<string> cornersToRemove = new List<string>();
@@ -99,7 +93,6 @@ public class Cell : MonoBehaviour
             blocks.Remove(corner);
         }
     }
-
     public void ClearAllBlocks()
     {
         foreach (var block in blocks.Values)
@@ -108,7 +101,6 @@ public class Cell : MonoBehaviour
         }
         blocks.Clear();
     }
-
     public bool IsCornerEmpty(string corner)
     {
         return !blocks.ContainsKey(corner);
@@ -150,6 +142,4 @@ public class Cell : MonoBehaviour
         }
         return result;
     }
-
-
 }
