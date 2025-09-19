@@ -5,14 +5,42 @@ using System.Collections.Generic;
 public class BoardManager : MonoBehaviour
 {
     public static BoardManager Instance;
-    public int rows = 5, cols = 5;
+
+    public int rows = 3, cols = 3;
     public GameObject cellPrefab;
     public GameObject[] blockPrefabs;
     public float spawnChance = 0.7f;
 
-    private void Awake() => Instance = this;
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
 
-    private void Start() => CreateBoard();
+    private void Start()
+    {
+        CreateBoard();
+    }
+
+    // METHOD ĐỂ CẤU HÌNH LẠI BOARD
+    public void ConfigureBoard(int newRows, int newCols)
+    {
+        rows = newRows;
+        cols = newCols;
+        ResetBoard();
+    }
+
+    public void ResetBoard()
+    {
+        // XÓA TOÀN BỘ CELL CŨ
+        foreach (Transform child in transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // TẠO BOARD MỚI
+        CreateBoard();
+    }
 
     void CreateBoard()
     {
@@ -23,14 +51,32 @@ public class BoardManager : MonoBehaviour
             return;
         }
 
+        // ĐIỀU CHỈNH GRID LAYOUT THEO SỐ LƯỢNG ROWS/COLS
+        AdjustGridLayout();
+
         for (int i = 0; i < rows * cols; i++)
         {
             GameObject cell = Instantiate(cellPrefab, transform);
             cell.name = $"Cell_{i}";
             EnsureCorners(cell);
-
-            // Spawn block ngẫu nhiên trên board (không kéo thả được)
             SpawnRandomBlocks(cell, false);
+        }
+
+        Debug.Log($"Created board: {rows}x{cols} with {rows * cols} cells");
+    }
+
+    private void AdjustGridLayout()
+    {
+        GridLayoutGroup grid = GetComponent<GridLayoutGroup>();
+        if (grid != null)
+        {
+            // TỰ ĐỘNG TÍNH TOÁN KÍCH THƯỚC CELL DỰA TRÊN SỐ LƯỢNG ROWS/COLS
+            RectTransform rectTransform = GetComponent<RectTransform>();
+            float width = rectTransform.rect.width;
+            float height = rectTransform.rect.height;
+
+            grid.cellSize = new Vector2(width / cols, height / rows);
+            grid.spacing = new Vector2(10, 10); // Có thể điều chỉnh
         }
     }
 
@@ -61,7 +107,6 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-    // Sửa method SpawnRandomBlocks để public
     public void SpawnRandomBlocks(GameObject cell, bool isDraggable)
     {
         string[] corners = { "TopLeft", "TopRight", "BottomLeft", "BottomRight" };
@@ -86,7 +131,6 @@ public class BoardManager : MonoBehaviour
                 block.transform.localPosition = Vector3.zero;
                 block.transform.localScale = Vector3.one;
 
-                // Xóa component DraggableCell nếu có
                 if (!isDraggable && block.GetComponent<DraggableCell>() != null)
                 {
                     Destroy(block.GetComponent<DraggableCell>());
@@ -96,6 +140,7 @@ public class BoardManager : MonoBehaviour
             }
         }
     }
+
     public Cell GetNearestCell(Vector3 pos, float maxDist = 100f)
     {
         Cell nearest = null;
@@ -121,167 +166,14 @@ public class BoardManager : MonoBehaviour
         return index < transform.childCount ? transform.GetChild(index).GetComponent<Cell>() : null;
     }
 
-    // Method mới để kiểm tra matches theo 4 hướng
-    public void CheckMatchesInFourDirections(Cell centerCell, int colorID)
-    {
-        List<Cell> matchedCells = new List<Cell>();
-        int index = centerCell.transform.GetSiblingIndex();
-        int centerRow = index / cols;
-        int centerCol = index % cols;
-
-        // Kiểm tra 4 hướng
-        CheckDirection(centerRow, centerCol, 0, -1, colorID, matchedCells); // Trái
-        CheckDirection(centerRow, centerCol, 0, 1, colorID, matchedCells);  // Phải
-        CheckDirection(centerRow, centerCol, -1, 0, colorID, matchedCells); // Trên
-        CheckDirection(centerRow, centerCol, 1, 0, colorID, matchedCells);  // Dưới
-
-        // Thêm center cell nếu có block cùng màu
-        if (centerCell.HasBlockOfColor(colorID))
-        {
-            matchedCells.Add(centerCell);
-        }
-
-        // Xóa nếu có ít nhất 2 cell match
-        if (matchedCells.Count >= 2)
-        {
-            foreach (Cell matchedCell in matchedCells)
-            {
-                matchedCell.RemoveBlocksOfColor(colorID);
-            }
-            Debug.Log($"Cleared {matchedCells.Count} cells of color {colorID}");
-        }
-    }
-
-    private void CheckDirection(int startRow, int startCol, int rowDir, int colDir, int colorID, List<Cell> matchedCells)
-    {
-        int currentRow = startRow + rowDir;
-        int currentCol = startCol + colDir;
-
-        while (true)
-        {
-            Cell neighborCell = GetCellAt(currentRow, currentCol);
-
-            if (neighborCell == null || !neighborCell.HasBlockOfColor(colorID))
-            {
-                break; // Dừng nếu hết cell hoặc không có block cùng màu
-            }
-
-            if (!matchedCells.Contains(neighborCell))
-            {
-                matchedCells.Add(neighborCell);
-            }
-
-            currentRow += rowDir;
-            currentCol += colDir;
-        }
-    }
-    public void RespawnBlocks(List<DraggableCell.BlockInfo> blocksToRespawn)
-    {
-        foreach (var blockInfo in blocksToRespawn)
-        {
-            if (blockInfo.cell != null && !string.IsNullOrEmpty(blockInfo.corner))
-            {
-                // Spawn block mới ngẫu nhiên
-                SpawnNewBlockAtCorner(blockInfo.cell.gameObject, blockInfo.corner);
-            }
-        }
-
-        // Kiểm tra thêm matches sau khi respawn (để xử lý chain reaction)
-        CheckForChainReactions(blocksToRespawn);
-    }
-
-    // Thêm method để kiểm tra chain reaction
-    private void CheckForChainReactions(List<DraggableCell.BlockInfo> respawnedBlocks)
-    {
-        // Có thể thêm logic chain reaction ở đây nếu muốn
-        foreach (var blockInfo in respawnedBlocks)
-        {
-            if (blockInfo.cell != null)
-            {
-                // Kiểm tra xem block mới có tạo match không
-                foreach (var block in blockInfo.cell.GetAllBlocks())
-                {
-                    BlockColor blockColor = block.GetComponent<BlockColor>();
-                    if (blockColor != null)
-                    {
-                        CheckMatchesInFourDirections(blockInfo.cell, blockColor.colorID);
-                    }
-                }
-            }
-        }
-    }
-    private void SpawnNewBlockAtCorner(GameObject cell, string corner)
-    {
-        Transform point = cell.transform.Find(corner);
-        if (point != null && blockPrefabs.Length > 0)
-        {
-            int randBlock = Random.Range(0, blockPrefabs.Length);
-            GameObject newBlock = Instantiate(blockPrefabs[randBlock], point);
-            newBlock.transform.localPosition = Vector3.zero;
-            newBlock.transform.localScale = Vector3.one;
-
-            // Thêm vào cell
-            Cell cellComp = cell.GetComponent<Cell>();
-            if (cellComp != null)
-            {
-                cellComp.AddBlock(newBlock, corner);
-            }
-        }
-    }
-
-    // Thêm method này vào BoardManager.cs
-    public List<Cell> GetNeighborCells(Cell centerCell)
-    {
-        List<Cell> neighbors = new List<Cell>();
-
-        int centerIndex = centerCell.transform.GetSiblingIndex();
-        int centerRow = centerIndex / cols;
-        int centerCol = centerIndex % cols;
-
-        // Trái
-        Cell leftCell = GetCellAt(centerRow, centerCol - 1);
-        if (leftCell != null) neighbors.Add(leftCell);
-
-        // Phải
-        Cell rightCell = GetCellAt(centerRow, centerCol + 1);
-        if (rightCell != null) neighbors.Add(rightCell);
-
-        // Trên
-        Cell topCell = GetCellAt(centerRow - 1, centerCol);
-        if (topCell != null) neighbors.Add(topCell);
-
-        // Dưới
-        Cell bottomCell = GetCellAt(centerRow + 1, centerCol);
-        if (bottomCell != null) neighbors.Add(bottomCell);
-
-        return neighbors;
-    }
-    // Thêm method này vào BoardManager.cs
-    // Thêm method này vào BoardManager.cs
     public List<Cell> GetAllCells()
     {
         List<Cell> allCells = new List<Cell>();
         foreach (Transform child in transform)
         {
             Cell cell = child.GetComponent<Cell>();
-            if (cell != null)
-            {
-                allCells.Add(cell);
-            }
+            if (cell != null) allCells.Add(cell);
         }
         return allCells;
     }
-
-    public void ResetBoard()
-    {
-        // Xoá toàn bộ cell cũ
-        foreach (Transform child in transform)
-        {
-            Destroy(child.gameObject);
-        }
-
-        // Tạo lại board mới
-        CreateBoard();
-    }
-
 }

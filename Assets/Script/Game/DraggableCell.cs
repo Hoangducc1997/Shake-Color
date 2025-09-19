@@ -216,13 +216,28 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     private void RemoveMatchedBlocks(List<BlockInfo> blocksToRemove)
     {
+        // Đếm số lượng block theo màu
+        Dictionary<int, int> colorCount = new Dictionary<int, int>();
+
         foreach (BlockInfo blockInfo in blocksToRemove)
         {
             if (blockInfo.cell != null && blockInfo.block != null)
             {
+                // Đếm số lượng block theo màu
+                if (!colorCount.ContainsKey(blockInfo.colorID))
+                    colorCount[blockInfo.colorID] = 0;
+                colorCount[blockInfo.colorID]++;
+
+                // Xóa block
                 blockInfo.cell.RemoveBlock(blockInfo.corner);
                 Destroy(blockInfo.block);
             }
+        }
+
+        // TRỪ điểm mục tiêu
+        foreach (var pair in colorCount)
+        {
+            GoalManager.Instance.SubtractTargetScore(pair.Key, pair.Value);
         }
     }
 

@@ -52,8 +52,6 @@ public class GameManager : MonoBehaviour
         if (BoardManager.Instance != null)
             BoardManager.Instance.ResetBoard();
 
-        if (BoardManager.Instance != null)
-            BoardManager.Instance.ResetBoard();
         foreach (var spawner in SpawnerManager.Instances)
         {
             spawner.RestartSpawner();

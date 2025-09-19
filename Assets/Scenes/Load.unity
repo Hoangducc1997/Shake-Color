@@ -487,6 +487,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2790497257984373827, guid: f2ca57d5911def643b4198a9a06bf788, type: 3}
+      propertyPath: m_text
+      value: Color Shake
+      objectReference: {fileID: 0}
     - target: {fileID: 7332272732971419390, guid: f2ca57d5911def643b4198a9a06bf788, type: 3}
       propertyPath: m_Name
       value: CanvasLoad
