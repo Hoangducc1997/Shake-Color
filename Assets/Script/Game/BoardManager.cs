@@ -16,7 +16,7 @@ public class BoardManager : MonoBehaviour
     private List<Coroutine> activeCoroutines = new List<Coroutine>();
     private bool isResetting = false;
     private bool hasInitialized = false; // 🔥 THÊM FLAG ĐỂ KIỂM TRA
-
+    private bool isFirstCreation = true;
     private void Awake()
     {
         Instances.Add(this);
@@ -106,8 +106,11 @@ public class BoardManager : MonoBehaviour
             SpawnRandomBlocks(cell, false);
         }
 
-        Debug.Log($"Board created: {gameObject.name}");
+        // 🔥 TẮT HIỆU ỨNG CHO NHỮNG LẦN TẠO SAU
+        isFirstCreation = false;
+        Debug.Log($"Board created: {gameObject.name}, FirstCreation: {isFirstCreation}");
     }
+
     private void ClearAllCells()
     {
         StopAllBoardCoroutines();
@@ -196,10 +199,15 @@ public class BoardManager : MonoBehaviour
                 int randBlock = Random.Range(0, blockPrefabs.Length);
                 GameObject block = Instantiate(blockPrefabs[randBlock], point);
                 block.transform.localPosition = Vector3.zero;
+
+                // 🔥 LUÔN ĐẶT SCALE CHUẨN TRƯỚC, RỒI MỚI ÁP DỤNG HIỆU ỨNG
                 block.transform.localScale = Vector3.one;
 
-                // 🔥 THÊM HIỆU ỨNG KHI SPAWN BLOCK MỚI
-                StartCoroutine(PlaySpawnEffect(block));
+                // 🔤 CHỈ ÁP DỤNG HIỆU ỨNG NẾU KHÔNG PHẢI LẦN ĐẦU
+                if (!isFirstCreation)
+                {
+                    StartCoroutine(PlaySpawnEffect(block));
+                }
 
                 if (!isDraggable && block.GetComponent<DraggableCell>() != null)
                 {
@@ -213,23 +221,26 @@ public class BoardManager : MonoBehaviour
     // 🔥 HIỆU ỨNG KHI SPAWN BLOCK MỚI
     private IEnumerator PlaySpawnEffect(GameObject block)
     {
-        Vector3 originalScale = Vector3.one;   // 👈 luôn luôn scale chuẩn 1
+        if (block == null) yield break;
+
+        Vector3 originalScale = Vector3.one;
         block.transform.localScale = Vector3.zero;
 
         float duration = 0.3f;
         float t = 0;
 
-        while (t < duration)
+        while (t < duration && block != null)
         {
             t += Time.deltaTime;
             block.transform.localScale = Vector3.Lerp(Vector3.zero, originalScale, t / duration);
             yield return null;
         }
 
-        block.transform.localScale = originalScale;
+        if (block != null)
+        {
+            block.transform.localScale = originalScale;
+        }
     }
-
-
     public void CheckMatchesInFourDirections(Cell centerCell, int colorID)
     {
         List<Cell> matchedCells = new List<Cell>();

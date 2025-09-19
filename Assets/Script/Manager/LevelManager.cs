@@ -60,7 +60,7 @@ public class LevelManager : MonoBehaviour
 
             currentLevelIndex = index;
             if (levelText != null)
-                levelText.text = "Level " + levels[index].levelName;
+                levelText.text = " " + levels[index].levelName;
 
             SetLevelGoals(levels[index]);
 
