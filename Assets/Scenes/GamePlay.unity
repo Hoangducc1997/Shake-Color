@@ -2787,17 +2787,17 @@ MonoBehaviour:
     purpleTarget: 0
     yellowTarget: 0
   - levelName: Level 2
-    levelObj: {fileID: 0}
-    redTarget: 0
-    blueTarget: 0
-    purpleTarget: 0
-    yellowTarget: 0
+    levelObj: {fileID: 197406570}
+    redTarget: 1
+    blueTarget: 1
+    purpleTarget: 1
+    yellowTarget: 1
   - levelName: Level 3
-    levelObj: {fileID: 0}
-    redTarget: 0
-    blueTarget: 0
-    purpleTarget: 0
-    yellowTarget: 0
+    levelObj: {fileID: 919971900}
+    redTarget: 2
+    blueTarget: 2
+    purpleTarget: 2
+    yellowTarget: 2
   currentLevelIndex: 0
 --- !u!114 &1180459023
 MonoBehaviour:

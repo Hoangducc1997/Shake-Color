@@ -304,7 +304,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
       propertyPath: _vfxByNameList.Array.size
-      value: 2
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
       propertyPath: _musicBySceneList.Array.size
@@ -319,6 +319,18 @@ PrefabInstance:
       value: Choose
       objectReference: {fileID: 0}
     - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
+      propertyPath: _vfxByNameList.Array.data[2].Name
+      value: Match
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
+      propertyPath: _vfxByNameList.Array.data[3].Name
+      value: Victory
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
+      propertyPath: _vfxByNameList.Array.data[4].Name
+      value: Gameover
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
       propertyPath: _vfxByNameList.Array.data[0].AudioClip
       value: 
       objectReference: {fileID: 8300000, guid: 7d1b2e189ad2f3b40895f0d92abaf1f2, type: 3}
@@ -327,9 +339,21 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 72b0e546efe862041ac2396059d663cc, type: 3}
     - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
+      propertyPath: _vfxByNameList.Array.data[2].AudioClip
+      value: 
+      objectReference: {fileID: 8300000, guid: 9d4e1bac9aea46c47ae9004974bd6df1, type: 3}
+    - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
+      propertyPath: _vfxByNameList.Array.data[3].AudioClip
+      value: 
+      objectReference: {fileID: 8300000, guid: b18a85b8411df42458ce8dec1c05f050, type: 3}
+    - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
+      propertyPath: _vfxByNameList.Array.data[4].AudioClip
+      value: 
+      objectReference: {fileID: 8300000, guid: 430b701a59b1d194a9f410da0db11407, type: 3}
+    - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
       propertyPath: _musicBySceneList.Array.data[0].AudioClip
       value: 
-      objectReference: {fileID: 8300000, guid: 4c55976df612f23428ed46bd598884e1, type: 3}
+      objectReference: {fileID: 8300000, guid: 74e336048dd947745ae241ea085bb900, type: 3}
     - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
       propertyPath: _musicBySceneList.Array.data[0].SceneName
       value: Load
@@ -337,7 +361,7 @@ PrefabInstance:
     - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
       propertyPath: _musicBySceneList.Array.data[1].AudioClip
       value: 
-      objectReference: {fileID: 8300000, guid: 4c55976df612f23428ed46bd598884e1, type: 3}
+      objectReference: {fileID: 8300000, guid: 74e336048dd947745ae241ea085bb900, type: 3}
     - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
       propertyPath: _musicBySceneList.Array.data[1].SceneName
       value: Menu
@@ -345,7 +369,7 @@ PrefabInstance:
     - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
       propertyPath: _musicBySceneList.Array.data[2].AudioClip
       value: 
-      objectReference: {fileID: 8300000, guid: 4c55976df612f23428ed46bd598884e1, type: 3}
+      objectReference: {fileID: 8300000, guid: 3a7a4ad61d913c54ba62b3d7a372266d, type: 3}
     - target: {fileID: 6366707590695817339, guid: 9c7f1f4aa5e49f44fbc9fbae2087d1fe, type: 3}
       propertyPath: _musicBySceneList.Array.data[2].SceneName
       value: GamePlay

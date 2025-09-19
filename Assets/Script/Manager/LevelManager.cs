@@ -37,33 +37,34 @@ public class LevelManager : MonoBehaviour
 
     public void LoadLevel(int index)
     {
-        if (index < 0 || index >= levels.Length)
+        if (index < 0 || index >= levels.Length) return;
+
+        // TẮT TẤT CẢ LEVEL
+        foreach (LevelData level in levels)
         {
-            Debug.LogWarning("Level index không hợp lệ!");
-            return;
+            if (level.levelObj != null)
+                level.levelObj.SetActive(false);
         }
 
-        // Tắt tất cả level
-        for (int i = 0; i < levels.Length; i++)
-        {
-            if (levels[i].levelObj != null)
-                levels[i].levelObj.SetActive(false);
-        }
-
-        // Bật level hiện tại
+        // BẬT LEVEL HIỆN TẠI
         if (levels[index].levelObj != null)
         {
             levels[index].levelObj.SetActive(true);
-            currentLevelIndex = index;
 
-            // Cập nhật UI text
+            // ĐẢM BẢO BOARD MANAGER ĐƯỢC SET ACTIVE
+            BoardManager levelBoard = levels[index].levelObj.GetComponent<BoardManager>();
+            if (levelBoard != null)
+            {
+                levelBoard.SetAsActiveBoard();
+            }
+
+            currentLevelIndex = index;
             if (levelText != null)
                 levelText.text = "Level " + levels[index].levelName;
 
-            // SET MỤC TIÊU CHO LEVEL NÀY
             SetLevelGoals(levels[index]);
 
-            Debug.Log("Đang chơi: " + levels[index].levelName);
+            Debug.Log($"Loaded level: {levels[index].levelName}");
         }
     }
 

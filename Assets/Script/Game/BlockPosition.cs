@@ -14,11 +14,11 @@ public class BlockPosition : MonoBehaviour
 
     public void CalculateGridPosition()
     {
-        if (parentCell == null) return;
+        if (parentCell == null || BoardManager.ActiveBoard == null) return;
 
         int cellIndex = parentCell.transform.GetSiblingIndex();
-        int rows = BoardManager.Instance.rows;
-        int cols = BoardManager.Instance.cols;
+        int rows = BoardManager.ActiveBoard.rows;
+        int cols = BoardManager.ActiveBoard.cols;
 
         int cellRow = cellIndex / cols;
         int cellCol = cellIndex % cols;
@@ -40,6 +40,7 @@ public class BlockPosition : MonoBehaviour
                 break;
         }
     }
+
 
     public bool IsAdjacent(BlockPosition other)
     {

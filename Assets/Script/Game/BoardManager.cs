@@ -5,27 +5,98 @@ using System.Collections;
 
 public class BoardManager : MonoBehaviour
 {
-    public static BoardManager Instance;
+    public static List<BoardManager> Instances = new List<BoardManager>();
+    public static BoardManager ActiveBoard { get; private set; }
+
     public int rows = 5, cols = 5;
     public GameObject cellPrefab;
     public GameObject[] blockPrefabs;
     public float spawnChance = 0.7f;
 
-    private void Awake() => Instance = this;
+    private List<Coroutine> activeCoroutines = new List<Coroutine>();
+    private bool isResetting = false;
+    private bool hasInitialized = false; // 🔥 THÊM FLAG ĐỂ KIỂM TRA
+
+    private void Awake()
+    {
+        Instances.Add(this);
+
+        if (ActiveBoard == null && gameObject.activeInHierarchy)
+        {
+            SetAsActiveBoard();
+        }
+    }
+
+    private void OnEnable()
+    {
+        SetAsActiveBoard();
+
+        // 🔥 TẠO BOARD KHI ĐƯỢC BẬT (NẾU CHƯA CÓ)
+        if (!hasInitialized)
+        {
+            CreateBoard();
+            hasInitialized = true;
+        }
+    }
 
     private void Start()
     {
-        CreateBoard();
+        // 🔥 CHỈ TẠO BOARD LẦN ĐẦU TIÊN
+        if (!hasInitialized)
+        {
+            CreateBoard();
+            hasInitialized = true;
+        }
     }
 
+    private void OnDisable()
+    {
+        if (ActiveBoard == this)
+        {
+            ActiveBoard = null;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        Instances.Remove(this);
+        StopAllBoardCoroutines();
+
+        if (ActiveBoard == this)
+        {
+            ActiveBoard = null;
+        }
+    }
+
+    public void SetAsActiveBoard()
+    {
+        if (!gameObject.activeInHierarchy) return;
+
+        ActiveBoard = this;
+        Debug.Log($"Active board set to: {gameObject.name}");
+        NotifyAllDraggableCells();
+    }
+    private void NotifyAllDraggableCells()
+    {
+        // TÌM TẤT CẢ DRAGGABLE CELLS VÀ CẬP NHẬT BOARD MANAGER CHO CHÚNG
+        DraggableCell[] allDraggableCells = FindObjectsOfType<DraggableCell>();
+        foreach (DraggableCell draggableCell in allDraggableCells)
+        {
+            draggableCell.UpdateBoardReference(this);
+        }
+    }
     void CreateBoard()
     {
+        if (isResetting) return;
+
         GridLayoutGroup grid = GetComponent<GridLayoutGroup>();
         if (!grid)
         {
             Debug.LogError("Add GridLayoutGroup");
             return;
         }
+
+        ClearAllCells();
 
         for (int i = 0; i < rows * cols; i++)
         {
@@ -34,6 +105,47 @@ public class BoardManager : MonoBehaviour
             EnsureCorners(cell);
             SpawnRandomBlocks(cell, false);
         }
+
+        Debug.Log($"Board created: {gameObject.name}");
+    }
+    private void ClearAllCells()
+    {
+        StopAllBoardCoroutines();
+
+        foreach (Transform child in transform)
+        {
+            if (child != null)
+            {
+                if (Application.isPlaying)
+                {
+                    Destroy(child.gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(child.gameObject);
+                }
+            }
+        }
+    }
+
+    private void StopAllBoardCoroutines()
+    {
+        foreach (Coroutine coroutine in activeCoroutines)
+        {
+            if (coroutine != null)
+            {
+                StopCoroutine(coroutine);
+            }
+        }
+        activeCoroutines.Clear();
+        StopAllCoroutines();
+    }
+
+    private new Coroutine StartCoroutine(IEnumerator routine)
+    {
+        Coroutine coroutine = base.StartCoroutine(routine);
+        activeCoroutines.Add(coroutine);
+        return coroutine;
     }
     void EnsureCorners(GameObject cell)
     {
@@ -176,6 +288,9 @@ public class BoardManager : MonoBehaviour
 
     public Cell GetNearestCell(Vector3 pos, float maxDist = 100f)
     {
+        // ĐẢM BẢO CHÚNG TA ĐANG SỬ DỤNG ACTIVE BOARD
+        if (ActiveBoard != this) return null;
+
         Cell nearest = null;
         float minDist = Mathf.Infinity;
 
@@ -194,6 +309,7 @@ public class BoardManager : MonoBehaviour
 
     public Cell GetCellAt(int row, int col)
     {
+        if (ActiveBoard != this) return null;
         if (row < 0 || row >= rows || col < 0 || col >= cols) return null;
         int index = row * cols + col;
         return index < transform.childCount ? transform.GetChild(index).GetComponent<Cell>() : null;
@@ -270,6 +386,7 @@ public class BoardManager : MonoBehaviour
 
     public void ResetBoard()
     {
+        AudioManager.Instance.PlayVFX("Match");
         StopAllCoroutines();
         StartCoroutine(ResetBoardWithEffects());
     }

@@ -13,28 +13,21 @@ public class GameManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
-        // Ẩn panel khi bắt đầu
         if (gameOverPanel) gameOverPanel.SetActive(false);
         if (victoryPanel) victoryPanel.SetActive(false);
     }
 
-    /// <summary>
-    /// Gọi khi thua game
-    /// </summary>
     public void GameOver()
     {
         if (gameOverPanel) gameOverPanel.SetActive(true);
-        Time.timeScale = 0f; // dừng game
+        Time.timeScale = 0f;
         Debug.Log("Game Over!");
     }
 
-    /// <summary>
-    /// Gọi khi thắng level
-    /// </summary>
     public void Victory()
     {
         if (victoryPanel) victoryPanel.SetActive(true);
-        Time.timeScale = 0f; // dừng game
+        Time.timeScale = 0f;
         Debug.Log("Victory!");
     }
 
@@ -43,15 +36,21 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void RestartLevel()
     {
+        AudioManager.Instance.PlayVFX("Choose");
         Time.timeScale = 1f;
 
         if (gameOverPanel) gameOverPanel.SetActive(false);
         if (victoryPanel) victoryPanel.SetActive(false);
 
-        // RESET BOARD AN TOÀN
-        if (BoardManager.Instance != null)
+        // 🔥 SỬA: Dùng BoardManager.ActiveBoard thay vì BoardManager.Instance
+        if (BoardManager.ActiveBoard != null)
         {
-            BoardManager.Instance.ResetBoard();
+            BoardManager.ActiveBoard.ResetBoard();
+        }
+        else if (BoardManager.Instances.Count > 0)
+        {
+            // Fallback: dùng board đầu tiên nếu không có active board
+            BoardManager.Instances[0].ResetBoard();
         }
 
         // RESET SPAWNER
@@ -62,15 +61,14 @@ public class GameManager : MonoBehaviour
                 spawner.RestartSpawner();
             }
         }
-
     }
-
 
     /// <summary>
     /// Load level tiếp theo sau khi thắng
     /// </summary>
     public void NextLevel()
     {
+        AudioManager.Instance.PlayVFX("Choose");
         Time.timeScale = 1f;
         if (victoryPanel) victoryPanel.SetActive(false);
 
@@ -82,6 +80,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     public void ExitGame()
     {
+        AudioManager.Instance.PlayVFX("Choose");
         Debug.Log("Exit Game");
         Application.Quit();
     }

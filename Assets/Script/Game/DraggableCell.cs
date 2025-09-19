@@ -20,7 +20,47 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         canvas = GetComponentInParent<Canvas>() ?? FindAnyObjectByType<Canvas>();
         canvasGroup = gameObject.AddComponent<CanvasGroup>();
         sourceCell = GetComponent<Cell>();
-        boardManager = BoardManager.Instance;
+
+        // TÌM BOARD MANAGER KHI KHỞI TẠO
+        FindActiveBoard();
+    }
+    private void FindActiveBoard()
+    {
+        // ƯU TIÊN TÌM ACTIVE BOARD
+        boardManager = BoardManager.ActiveBoard;
+
+        // NẾU KHÔNG CÓ ACTIVE BOARD, TÌM BOARD ĐẦU TIÊN ĐANG ACTIVE TRONG SCENE
+        if (boardManager == null)
+        {
+            foreach (BoardManager board in BoardManager.Instances)
+            {
+                if (board.gameObject.activeInHierarchy)
+                {
+                    boardManager = board;
+                    break;
+                }
+            }
+        }
+
+        if (boardManager == null && BoardManager.Instances.Count > 0)
+        {
+            boardManager = BoardManager.Instances[0];
+        }
+
+        if (boardManager != null)
+        {
+            Debug.Log($"DraggableCell found board: {boardManager.gameObject.name}");
+        }
+        else
+        {
+            Debug.LogWarning("DraggableCell: No board found!");
+        }
+    }
+
+    private void OnEnable()
+    {
+        // KHI OBJECT ĐƯỢC BẬT, TÌM LẠI ACTIVE BOARD
+        FindActiveBoard();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -36,6 +76,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         {
             pair.Value.GetComponent<JellyEffect>()?.PlayJelly();
         }
+        AudioManager.Instance.PlayVFX("Pop");
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -46,7 +87,9 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         if (jellyCoroutine == null)
         {
             jellyCoroutine = StartCoroutine(PlayJellyCoroutine());
+            AudioManager.Instance.PlayVFX("Pop");
         }
+
     }
 
     private IEnumerator PlayJellyCoroutine()
@@ -66,6 +109,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        AudioManager.Instance.PlayVFX("Pop");
         // 🔥 Hiệu ứng jelly khi kết thúc kéo
         foreach (var pair in sourceCell.blocks)
         {
@@ -77,7 +121,11 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
         if (boardManager == null)
         {
-            boardManager = BoardManager.Instance;
+            boardManager = BoardManager.ActiveBoard;
+            if (boardManager == null && BoardManager.Instances.Count > 0)
+            {
+                boardManager = BoardManager.Instances[0];
+            }
             if (boardManager == null)
             {
                 ReturnToOriginalPosition();
@@ -113,6 +161,11 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         {
             ReturnToOriginalPosition();
         }
+    }
+    public void UpdateBoardReference(BoardManager newBoard)
+    {
+        boardManager = newBoard;
+        Debug.Log($"DraggableCell updated board reference to: {newBoard.gameObject.name}");
     }
 
     // 🔥 HIỆU ỨNG NỔ CHO CÁC BLOCK MATCH

@@ -87,9 +87,17 @@ public class GoalManager : MonoBehaviour
     }
 
     private void ShowLevelCompletePopup()
-    {
-        victoryPanel.SetActive(true);
+    {               
+        StartCoroutine(ShowVictoryWithDelay(1.5f));
+        AudioManager.Instance.PlayVFX("Victory");
         Debug.Log("Hoàn thành level! Nhấn tiếp tục để chơi level tiếp theo.");
+    }
+
+    // Hiện victory chậm hơn
+    private System.Collections.IEnumerator ShowVictoryWithDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        victoryPanel.SetActive(true);
     }
 
     // Thêm method để tiếp tục game
