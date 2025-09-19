@@ -64,13 +64,21 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             {
                 // CÓ MATCH: Xóa blocks và spawn cell mới
                 RemoveMatchedBlocks(blocksToRemove);
-                SpawnerManager.Instance.SpawnCell();
+                foreach (var spawner in SpawnerManager.Instances)
+                {
+                    spawner.RestartSpawner();
+                }
+
                 Destroy(gameObject);
             }
             else
             {
                 // KHÔNG CÓ MATCH: Giữ nguyên blocks trên board
-                SpawnerManager.Instance.SpawnCell();
+                foreach (var spawner in SpawnerManager.Instances)
+                {
+                    spawner.RestartSpawner();
+                }
+
                 Destroy(gameObject);
             }
         }

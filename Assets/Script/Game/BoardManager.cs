@@ -271,4 +271,17 @@ public class BoardManager : MonoBehaviour
         }
         return allCells;
     }
+
+    public void ResetBoard()
+    {
+        // Xoá toàn bộ cell cũ
+        foreach (Transform child in transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // Tạo lại board mới
+        CreateBoard();
+    }
+
 }

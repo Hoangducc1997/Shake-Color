@@ -44,11 +44,25 @@ public class GameManager : MonoBehaviour
     public void RestartLevel()
     {
         Time.timeScale = 1f;
+
         if (gameOverPanel) gameOverPanel.SetActive(false);
         if (victoryPanel) victoryPanel.SetActive(false);
 
+        // Reset lại board mới
+        if (BoardManager.Instance != null)
+            BoardManager.Instance.ResetBoard();
+
+        if (BoardManager.Instance != null)
+            BoardManager.Instance.ResetBoard();
+        foreach (var spawner in SpawnerManager.Instances)
+        {
+            spawner.RestartSpawner();
+        }
+
+        // Load lại level hiện tại
         LevelManager.Instance.LoadLevel(LevelManager.Instance.currentLevelIndex);
     }
+
 
     /// <summary>
     /// Load level tiếp theo sau khi thắng

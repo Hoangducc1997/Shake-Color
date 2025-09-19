@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 
 [System.Serializable]
 public class LevelData
@@ -10,6 +11,8 @@ public class LevelData
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance;
+
+    [SerializeField] private TextMeshProUGUI levelText;
 
     [Header("Danh sách level")]
     public LevelData[] levels;
@@ -46,6 +49,11 @@ public class LevelManager : MonoBehaviour
         {
             levels[index].levelObj.SetActive(true);
             currentLevelIndex = index;
+
+            // Cập nhật UI text
+            if (levelText != null)
+                levelText.text = "" + levels[index].levelName;
+
             Debug.Log("Đang chơi: " + levels[index].levelName);
         }
     }
@@ -62,6 +70,8 @@ public class LevelManager : MonoBehaviour
         else
         {
             Debug.Log("Bạn đã hoàn thành tất cả các level!");
+            if (levelText != null)
+                levelText.text = "🎉 Hoàn thành tất cả level 🎉";
         }
     }
 }

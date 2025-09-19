@@ -3,14 +3,27 @@ using UnityEngine;
 
 public class SpawnerManager : MonoBehaviour
 {
-    public static SpawnerManager Instance;
+    // MultiSingleton: lưu tất cả Spawner hiện tại
+    public static List<SpawnerManager> Instances { get; private set; } = new List<SpawnerManager>();
+
     public GameObject cellPrefab;
     public GameObject[] blockPrefabs;
     public float spawnChance = 0.7f;
 
+    private List<GameObject> spawnedCells = new List<GameObject>();
+
     private void Awake()
     {
-        Instance = this;
+        // Đăng ký Spawner này vào danh sách
+        if (!Instances.Contains(this))
+            Instances.Add(this);
+    }
+
+    private void OnDestroy()
+    {
+        // Xóa khỏi danh sách khi bị hủy
+        if (Instances.Contains(this))
+            Instances.Remove(this);
     }
 
     private void Start()
@@ -18,6 +31,21 @@ public class SpawnerManager : MonoBehaviour
         SpawnCell();
     }
 
+    /// <summary>
+    /// Xóa toàn bộ cell đã spawn
+    /// </summary>
+    public void ClearAllCells()
+    {
+        foreach (var cell in spawnedCells)
+        {
+            if (cell != null) Destroy(cell);
+        }
+        spawnedCells.Clear();
+    }
+
+    /// <summary>
+    /// Spawn cell mới
+    /// </summary>
     public void SpawnCell()
     {
         GameObject cell = Instantiate(cellPrefab, transform, false);
@@ -26,11 +54,13 @@ public class SpawnerManager : MonoBehaviour
         // Spawn block ngẫu nhiên (có thể kéo thả)
         SpawnRandomBlocks(cell, true);
 
-        // Thêm component DraggableCell cho toàn bộ cell
+        // Thêm component DraggableCell cho cell nếu chưa có
         if (cell.GetComponent<DraggableCell>() == null)
         {
             cell.AddComponent<DraggableCell>();
         }
+
+        spawnedCells.Add(cell);
     }
 
     void EnsureCorners(GameObject cell)
@@ -60,7 +90,7 @@ public class SpawnerManager : MonoBehaviour
         }
     }
 
-    // Sửa phần spawn block trong SpawnRandomBlocks
+    // Spawn block ngẫu nhiên trong cell
     void SpawnRandomBlocks(GameObject cell, bool isDraggable)
     {
         string[] corners = { "TopLeft", "TopRight", "BottomLeft", "BottomRight" };
@@ -85,7 +115,7 @@ public class SpawnerManager : MonoBehaviour
                 block.transform.localPosition = Vector3.zero;
                 block.transform.localScale = Vector3.one;
 
-                // Xóa component DraggableCell từ các block riêng lẻ
+                // Xóa DraggableCell khỏi block riêng lẻ
                 if (block.GetComponent<DraggableCell>() != null)
                 {
                     Destroy(block.GetComponent<DraggableCell>());
@@ -96,4 +126,12 @@ public class SpawnerManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Restart lại Spawner (clear hết cell và spawn lại từ đầu)
+    /// </summary>
+    public void RestartSpawner()
+    {
+        ClearAllCells();
+        SpawnCell();
+    }
 }
