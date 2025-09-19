@@ -124,4 +124,26 @@ public class SpawnerManager : MonoBehaviour
         ClearAllCells();
         SpawnCell();
     }
+    // Thêm vào SpawnerManager.cs
+    // Thêm vào SpawnerManager.cs
+    public void RemoveSpawnedCell(GameObject cell)
+    {
+        if (spawnedCells.Contains(cell))
+        {
+            spawnedCells.Remove(cell);
+            Debug.Log($"Removed cell from spawner: {cell.name}, remaining: {spawnedCells.Count}");
+        }
+        else
+        {
+            Debug.LogWarning($"Cell not found in spawner: {cell.name}");
+        }
+    }
+    public void AddSpawnedCell(GameObject cell)
+    {
+        if (!spawnedCells.Contains(cell))
+        {
+            spawnedCells.Add(cell);
+            Debug.Log($"Added cell to spawner: {cell.name}");
+        }
+    }
 }

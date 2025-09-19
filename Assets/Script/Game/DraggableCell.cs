@@ -112,6 +112,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         }
         canvasGroup.blocksRaycasts = true;
         canvasGroup.alpha = 1f;
+
         if (boardManager == null)
         {
             boardManager = BoardManager.ActiveBoard;
@@ -125,9 +126,22 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 return;
             }
         }
+
         Cell targetCell = boardManager.GetNearestCell(rectTransform.position);
         if (targetCell != null && !targetCell.HasBlocks())
         {
+            // CHUYỂN PARENT CỦA CELL TỪ SPAWNER SANG BOARD
+            Transform originalParent = transform.parent;
+            transform.SetParent(boardManager.transform);
+
+            // CẬP NHẬT SPAWNER (nếu cell đến từ spawner)
+            SpawnerManager spawner = originalParent.GetComponent<SpawnerManager>();
+            if (spawner != null)
+            {
+                spawner.RemoveSpawnedCell(gameObject);
+                Debug.Log($"Đã chuyển cell từ spawner sang board: {gameObject.name}");
+            }
+
             MoveBlocksToTargetCell(targetCell);
             List<BlockInfo> blocksToRemove = CheckForMatchesWithExistingBlocks(targetCell);
 
@@ -144,12 +158,16 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 ResetAllSpawners();
                 Destroy(gameObject);
             }
+
+            // KIỂM TRA GAME OVER SAU KHI THẢ CELL
+            boardManager.CheckIfBoardIsFull();
         }
         else
         {
             ReturnToOriginalPosition();
         }
     }
+
     public void UpdateBoardReference(BoardManager newBoard)
     {
         boardManager = newBoard;

@@ -17,6 +17,8 @@ public class BoardManager : MonoBehaviour
     private bool isResetting = false;
     private bool hasInitialized = false; // Flag check
     private bool isFirstCreation = true;
+    public GameObject gameOverPanel;
+
     private void Awake()
     {
         Instances.Add(this);
@@ -46,6 +48,7 @@ public class BoardManager : MonoBehaviour
             CreateBoard();
             hasInitialized = true;
         }
+        gameOverPanel.SetActive(false);
     }
 
     private void OnDisable()
@@ -452,5 +455,67 @@ public class BoardManager : MonoBehaviour
             }
         }
         return allCells;
+    }
+    public bool IsBoardFull()
+    {
+        Cell[] allCells = FindObjectsOfType<Cell>();
+        int totalCells = allCells.Length;
+        int filledCells = 0;
+
+        foreach (Cell cell in allCells)
+        {
+            if (cell.blocks.Count > 0)
+            {
+                filledCells++;
+            }
+            else
+            {
+                Debug.Log($"Empty cell found: {cell.gameObject.name}");
+            }
+        }
+
+        Debug.Log($"Global check: {filledCells}/{totalCells} cells filled");
+        return filledCells == totalCells;
+    }
+
+    public void CheckIfBoardIsFull()
+    {
+        int expectedCells = rows * cols;
+        int cellsWithBlocks = 0;
+        for (int i = 0; i < Mathf.Min(transform.childCount, expectedCells); i++)
+        {
+            Transform child = transform.GetChild(i);
+            Cell cell = child.GetComponent<Cell>();
+            if (cell != null)
+            {
+                if (cell.blocks.Count > 0)
+                {
+                    cellsWithBlocks++;
+                    Debug.Log($"✓ Cell {i}: {child.name} has blocks");
+                }
+                else
+                {
+                    Debug.LogWarning($"✗ Cell {i}: {child.name} is EMPTY");
+                }
+            }
+        }
+        Debug.Log($"Designed check: {cellsWithBlocks}/{expectedCells} have blocks");
+        if (cellsWithBlocks == expectedCells)
+        {
+            Debug.Log("🎮 GAME OVER - BOARD IS FULL!");
+            ShowGameOver();
+        }
+    }
+
+    private void ShowGameOver()
+    {
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Game Over Panel is not assigned in BoardManager.");
+        }
     }
 }

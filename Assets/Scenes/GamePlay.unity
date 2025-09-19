@@ -447,6 +447,7 @@ MonoBehaviour:
   - {fileID: 4966801394824315793, guid: d9caebf2b0d28454f92c34fac8bb1301, type: 3}
   - {fileID: 6909683207061384612, guid: 4e3d2c522fd2a9f4b869d834adce889f, type: 3}
   spawnChance: 0.3
+  gameOverPanel: {fileID: 852354192}
 --- !u!114 &197406573
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -585,10 +586,10 @@ RectTransform:
   - {fileID: 1389255296}
   m_Father: {fileID: 852354193}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 333, y: -371}
-  m_SizeDelta: {x: 386, y: 99}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &299586421
 MonoBehaviour:
@@ -1124,10 +1125,10 @@ RectTransform:
   - {fileID: 805911238}
   m_Father: {fileID: 852354193}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 333, y: -588.5}
-  m_SizeDelta: {x: 386, y: 99}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &715350674
 MonoBehaviour:
@@ -1729,7 +1730,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &852354193
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1990,6 +1991,7 @@ MonoBehaviour:
   - {fileID: 4966801394824315793, guid: d9caebf2b0d28454f92c34fac8bb1301, type: 3}
   - {fileID: 6909683207061384612, guid: 4e3d2c522fd2a9f4b869d834adce889f, type: 3}
   spawnChance: 0.5
+  gameOverPanel: {fileID: 852354192}
 --- !u!114 &919971903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2787,10 +2789,10 @@ MonoBehaviour:
     redTarget: 1
     blueTarget: 0
     purpleTarget: 0
-    yellowTarget: 0
+    yellowTarget: 1
   - levelName: Level 2
     levelObj: {fileID: 197406570}
-    redTarget: 1
+    redTarget: 2
     blueTarget: 1
     purpleTarget: 1
     yellowTarget: 1
@@ -2800,6 +2802,18 @@ MonoBehaviour:
     blueTarget: 2
     purpleTarget: 2
     yellowTarget: 2
+  - levelName: Level 4
+    levelObj: {fileID: 1961574963}
+    redTarget: 3
+    blueTarget: 3
+    purpleTarget: 2
+    yellowTarget: 2
+  - levelName: Level 5
+    levelObj: {fileID: 1977687122}
+    redTarget: 3
+    blueTarget: 3
+    purpleTarget: 3
+    yellowTarget: 3
   currentLevelIndex: 0
 --- !u!114 &1180459023
 MonoBehaviour:
@@ -4126,6 +4140,7 @@ MonoBehaviour:
   - {fileID: 4966801394824315793, guid: d9caebf2b0d28454f92c34fac8bb1301, type: 3}
   - {fileID: 6909683207061384612, guid: 4e3d2c522fd2a9f4b869d834adce889f, type: 3}
   spawnChance: 0.2
+  gameOverPanel: {fileID: 852354192}
 --- !u!1 &1684921425
 GameObject:
   m_ObjectHideFlags: 0
@@ -4895,6 +4910,7 @@ MonoBehaviour:
   - {fileID: 4966801394824315793, guid: d9caebf2b0d28454f92c34fac8bb1301, type: 3}
   - {fileID: 6909683207061384612, guid: 4e3d2c522fd2a9f4b869d834adce889f, type: 3}
   spawnChance: 0.56
+  gameOverPanel: {fileID: 852354192}
 --- !u!114 &1961574966
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5017,6 +5033,7 @@ MonoBehaviour:
   - {fileID: 4966801394824315793, guid: d9caebf2b0d28454f92c34fac8bb1301, type: 3}
   - {fileID: 6909683207061384612, guid: 4e3d2c522fd2a9f4b869d834adce889f, type: 3}
   spawnChance: 0.68
+  gameOverPanel: {fileID: 852354192}
 --- !u!114 &1977687125
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5326,10 +5343,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 852354193}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 333, y: -153.5}
-  m_SizeDelta: {x: 386, y: 99}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2034659330
 MonoBehaviour:
