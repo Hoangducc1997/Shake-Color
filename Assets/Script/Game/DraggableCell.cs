@@ -10,7 +10,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     private Vector3 startPos;
     private Transform startParent;
     private Cell sourceCell;
-    private BoardManager boardManager; // Thêm biến boardManager
+    private BoardManager boardManager;
 
     private void Awake()
     {
@@ -18,7 +18,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         canvas = GetComponentInParent<Canvas>() ?? FindAnyObjectByType<Canvas>();
         canvasGroup = gameObject.AddComponent<CanvasGroup>();
         sourceCell = GetComponent<Cell>();
-        boardManager = BoardManager.Instance; // Khởi tạo boardManager
+        boardManager = BoardManager.Instance;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -54,25 +54,28 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
         if (targetCell != null && !targetCell.HasBlocks())
         {
-            // Di chuyển toàn bộ block sang cell đích (trên board)
+            // DI CHUYỂN BLOCKS SANG BOARD
             MoveBlocksToTargetCell(targetCell);
 
-            // Kiểm tra matches ở các block kế cận
-            CheckSurroundingMatches(targetCell);
+            // KIỂM TRA MATCH CHỈ VỚI CÁC BLOCK TRÊN BOARD (KHÔNG BAO GỒM BLOCK MỚI)
+            List<BlockInfo> blocksToRemove = CheckForMatchesWithExistingBlocks(targetCell);
 
-            // Spawn cell mới trong spawner
-            SpawnerManager spawnerManager = FindAnyObjectByType<SpawnerManager>();
-            if (spawnerManager != null)
+            if (blocksToRemove.Count >= 2)
             {
-                spawnerManager.SpawnCell();
+                // CÓ MATCH: Xóa blocks và spawn cell mới
+                RemoveMatchedBlocks(blocksToRemove);
+                SpawnerManager.Instance.SpawnCell();
+                Destroy(gameObject);
             }
-
-            // Hủy cell cũ trong spawner
-            Destroy(gameObject);
+            else
+            {
+                // KHÔNG CÓ MATCH: Giữ nguyên blocks trên board
+                SpawnerManager.Instance.SpawnCell();
+                Destroy(gameObject);
+            }
         }
         else
         {
-            // Trả về vị trí ban đầu nếu không thể thả
             ReturnToOriginalPosition();
         }
     }
@@ -86,7 +89,6 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             string corner = pair.Key;
             GameObject block = pair.Value;
 
-            // Di chuyển block sang cell đích
             Transform cornerTransform = targetCell.transform.Find(corner);
             if (cornerTransform != null)
             {
@@ -94,132 +96,125 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 block.transform.localPosition = Vector3.zero;
                 block.transform.localScale = Vector3.one;
 
-                // Thêm block vào cell đích
                 targetCell.AddBlock(block, corner);
             }
         }
 
-        // Xóa tất cả block khỏi cell nguồn
         sourceCell.blocks.Clear();
     }
 
-    private void CheckSurroundingMatches(Cell centerCell)
+    private List<BlockInfo> CheckForMatchesWithExistingBlocks(Cell newCell)
     {
-        if (centerCell == null || boardManager == null) return;
-
-        // Danh sách các block cần xóa
         List<BlockInfo> blocksToRemove = new List<BlockInfo>();
 
-        // Kiểm tra từng block trong cell mới
-        foreach (var pair in centerCell.blocks)
+        // CHỈ KIỂM TRA VỚI CÁC BLOCK ĐÃ CÓ TRÊN BOARD (KHÔNG BAO GỒM BLOCK MỚI)
+        foreach (Cell boardCell in boardManager.GetAllCells())
         {
-            GameObject block = pair.Value;
-            BlockColor blockColor = block.GetComponent<BlockColor>();
-            if (blockColor != null)
-            {
-                // Tìm các block kế cận cùng màu
-                FindAdjacentBlocksOfSameColor(centerCell, pair.Key, blockColor.colorID, blocksToRemove);
-            }
-        }
+            // BỎ QUA CELL MỚI (vừa được thả)
+            if (boardCell == newCell) continue;
 
-        // Chỉ xóa nếu có ít nhất 2 block liền kề cùng màu
-        if (blocksToRemove.Count >= 2)
-        {
-            foreach (BlockInfo blockInfo in blocksToRemove)
+            foreach (var pair in boardCell.blocks)
             {
-                // Xóa block cũ
-                if (blockInfo.cell != null && blockInfo.block != null)
+                GameObject block = pair.Value;
+                BlockColor blockColor = block.GetComponent<BlockColor>();
+                if (blockColor != null)
                 {
-                    blockInfo.cell.RemoveBlock(blockInfo.corner);
-                    Destroy(blockInfo.block);
+                    // Kiểm tra xem block trên board có match với block mới không
+                    CheckMatchesWithNewCell(boardCell, pair.Key, blockColor.colorID, newCell, blocksToRemove);
                 }
             }
+        }
 
-            Debug.Log($"Removed {blocksToRemove.Count} adjacent blocks of same color");
-        }
-        else
-        {
-            Debug.Log("Not enough adjacent blocks found");
-        }
+        return blocksToRemove;
     }
 
-    private void FindAdjacentBlocksOfSameColor(Cell centerCell, string centerCorner, int targetColorID, List<BlockInfo> blocksToRemove)
+    private void CheckMatchesWithNewCell(Cell boardCell, string boardCorner, int boardColorID, Cell newCell, List<BlockInfo> blocksToRemove)
     {
-        // Thêm block trung tâm vào danh sách
-        AddBlockToRemoveList(centerCell, centerCorner, targetColorID, blocksToRemove);
-
-        // Lấy vị trí cell trong board
-        int cellIndex = centerCell.transform.GetSiblingIndex();
-        int cellRow = cellIndex / boardManager.cols;
-        int cellCol = cellIndex % boardManager.cols;
-
-        // Kiểm tra các block kế cận theo 4 hướng
-        CheckAdjacentInSameCell(centerCell, centerCorner, targetColorID, blocksToRemove);
-        CheckAdjacentInNeighborCells(cellRow, cellCol, centerCorner, targetColorID, blocksToRemove);
-    }
-
-    private void CheckAdjacentInSameCell(Cell cell, string centerCorner, int targetColorID, List<BlockInfo> blocksToRemove)
-    {
-        // Kiểm tra các corner kế cận trong cùng cell
-        switch (centerCorner)
+        // Kiểm tra từng block trong cell mới
+        foreach (var newPair in newCell.blocks)
         {
-            case "TopLeft":
-                CheckCorner(cell, "TopRight", targetColorID, blocksToRemove);
-                CheckCorner(cell, "BottomLeft", targetColorID, blocksToRemove);
-                break;
-            case "TopRight":
-                CheckCorner(cell, "TopLeft", targetColorID, blocksToRemove);
-                CheckCorner(cell, "BottomRight", targetColorID, blocksToRemove);
-                break;
-            case "BottomLeft":
-                CheckCorner(cell, "TopLeft", targetColorID, blocksToRemove);
-                CheckCorner(cell, "BottomRight", targetColorID, blocksToRemove);
-                break;
-            case "BottomRight":
-                CheckCorner(cell, "TopRight", targetColorID, blocksToRemove);
-                CheckCorner(cell, "BottomLeft", targetColorID, blocksToRemove);
-                break;
+            GameObject newBlock = newPair.Value;
+            BlockColor newBlockColor = newBlock.GetComponent<BlockColor>();
+
+            if (newBlockColor != null && newBlockColor.colorID == boardColorID)
+            {
+                // Kiểm tra xem 2 block có kế cận không
+                if (AreBlocksAdjacent(boardCell, boardCorner, newCell, newPair.Key))
+                {
+                    // Thêm cả 2 block vào danh sách xóa
+                    AddBlockToRemoveList(boardCell, boardCorner, boardColorID, blocksToRemove);
+                    AddBlockToRemoveList(newCell, newPair.Key, boardColorID, blocksToRemove);
+                }
+            }
         }
     }
 
-    private void CheckAdjacentInNeighborCells(int cellRow, int cellCol, string centerCorner, int targetColorID, List<BlockInfo> blocksToRemove)
+    private bool AreBlocksAdjacent(Cell cell1, string corner1, Cell cell2, string corner2)
     {
-        // Kiểm tra các block kế cận trong cell liền kề
-        switch (centerCorner)
-        {
-            case "TopLeft":
-                CheckNeighborCellCorner(cellRow, cellCol - 1, "TopRight", targetColorID, blocksToRemove); // Trái
-                CheckNeighborCellCorner(cellRow - 1, cellCol, "BottomLeft", targetColorID, blocksToRemove); // Trên
-                break;
-            case "TopRight":
-                CheckNeighborCellCorner(cellRow, cellCol + 1, "TopLeft", targetColorID, blocksToRemove); // Phải
-                CheckNeighborCellCorner(cellRow - 1, cellCol, "BottomRight", targetColorID, blocksToRemove); // Trên
-                break;
-            case "BottomLeft":
-                CheckNeighborCellCorner(cellRow, cellCol - 1, "BottomRight", targetColorID, blocksToRemove); // Trái
-                CheckNeighborCellCorner(cellRow + 1, cellCol, "TopLeft", targetColorID, blocksToRemove); // Dưới
-                break;
-            case "BottomRight":
-                CheckNeighborCellCorner(cellRow, cellCol + 1, "BottomLeft", targetColorID, blocksToRemove); // Phải
-                CheckNeighborCellCorner(cellRow + 1, cellCol, "TopRight", targetColorID, blocksToRemove); // Dưới
-                break;
-        }
+        // Lấy vị trí cell
+        int index1 = cell1.transform.GetSiblingIndex();
+        int row1 = index1 / boardManager.cols;
+        int col1 = index1 % boardManager.cols;
+
+        int index2 = cell2.transform.GetSiblingIndex();
+        int row2 = index2 / boardManager.cols;
+        int col2 = index2 % boardManager.cols;
+
+        // Kiểm tra cell có kế cận không
+        bool cellsAdjacent = (Mathf.Abs(row1 - row2) == 1 && col1 == col2) ||
+                            (Mathf.Abs(col1 - col2) == 1 && row1 == row2);
+
+        if (!cellsAdjacent) return false;
+
+        // Kiểm tra corner có kế cận không
+        return AreCornersAdjacent(corner1, corner2, row1, col1, row2, col2);
     }
 
-    private void CheckNeighborCellCorner(int row, int col, string corner, int targetColorID, List<BlockInfo> blocksToRemove)
+    private bool AreCornersAdjacent(string corner1, string corner2, int row1, int col1, int row2, int col2)
     {
-        Cell neighborCell = boardManager.GetCellAt(row, col);
-        if (neighborCell != null)
+        // TopLeft của cell (0,0) kế cận với TopRight của cell (0,-1)
+        // BottomRight của cell (0,0) kế cận với BottomLeft của cell (1,0)
+        // v.v.
+
+        if (row1 == row2) // Cùng hàng
         {
-            CheckCorner(neighborCell, corner, targetColorID, blocksToRemove);
+            if (col1 == col2 - 1) // Cell1 bên trái Cell2
+            {
+                return (corner1 == "TopRight" && corner2 == "TopLeft") ||
+                       (corner1 == "BottomRight" && corner2 == "BottomLeft");
+            }
+            else if (col1 == col2 + 1) // Cell1 bên phải Cell2
+            {
+                return (corner1 == "TopLeft" && corner2 == "TopRight") ||
+                       (corner1 == "BottomLeft" && corner2 == "BottomRight");
+            }
         }
+        else if (col1 == col2) // Cùng cột
+        {
+            if (row1 == row2 - 1) // Cell1 bên trên Cell2
+            {
+                return (corner1 == "BottomLeft" && corner2 == "TopLeft") ||
+                       (corner1 == "BottomRight" && corner2 == "TopRight");
+            }
+            else if (row1 == row2 + 1) // Cell1 bên dưới Cell2
+            {
+                return (corner1 == "TopLeft" && corner2 == "BottomLeft") ||
+                       (corner1 == "TopRight" && corner2 == "BottomRight");
+            }
+        }
+
+        return false;
     }
 
-    private void CheckCorner(Cell cell, string corner, int targetColorID, List<BlockInfo> blocksToRemove)
+    private void RemoveMatchedBlocks(List<BlockInfo> blocksToRemove)
     {
-        if (cell.HasBlockOfColorAtCorner(corner, targetColorID))
+        foreach (BlockInfo blockInfo in blocksToRemove)
         {
-            AddBlockToRemoveList(cell, corner, targetColorID, blocksToRemove);
+            if (blockInfo.cell != null && blockInfo.block != null)
+            {
+                blockInfo.cell.RemoveBlock(blockInfo.corner);
+                Destroy(blockInfo.block);
+            }
         }
     }
 
@@ -228,7 +223,6 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         GameObject block = cell.GetBlockAtCorner(corner);
         if (block != null)
         {
-            // Kiểm tra nếu chưa có trong danh sách
             bool alreadyExists = false;
             foreach (var existing in blocksToRemove)
             {
@@ -241,17 +235,13 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
             if (!alreadyExists)
             {
-                BlockColor blockColor = block.GetComponent<BlockColor>();
-                if (blockColor != null && blockColor.colorID == targetColorID)
+                blocksToRemove.Add(new BlockInfo
                 {
-                    blocksToRemove.Add(new BlockInfo
-                    {
-                        cell = cell,
-                        block = block,
-                        corner = corner,
-                        colorID = targetColorID
-                    });
-                }
+                    cell = cell,
+                    block = block,
+                    corner = corner,
+                    colorID = targetColorID
+                });
             }
         }
     }
@@ -262,7 +252,6 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         rectTransform.position = startPos;
     }
 
-    // Struct để lưu thông tin block
     public struct BlockInfo
     {
         public Cell cell;

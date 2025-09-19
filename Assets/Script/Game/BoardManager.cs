@@ -257,6 +257,7 @@ public class BoardManager : MonoBehaviour
         return neighbors;
     }
     // Thêm method này vào BoardManager.cs
+    // Thêm method này vào BoardManager.cs
     public List<Cell> GetAllCells()
     {
         List<Cell> allCells = new List<Cell>();
