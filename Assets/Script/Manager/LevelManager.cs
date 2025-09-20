@@ -5,7 +5,7 @@ using UnityEngine;
 public class LevelData
 {
     public string levelName;
-    public GameObject levelObj; 
+    public GameObject levelObj;
 
     [Header("Mục tiêu level")]
     public int redTarget = 0;
@@ -29,6 +29,7 @@ public class LevelManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
     }
+
     private void Start()
     {
         LoadLevel(currentLevelIndex);
@@ -57,7 +58,23 @@ public class LevelManager : MonoBehaviour
             currentLevelIndex = index;
             if (levelText != null)
                 levelText.text = " " + levels[index].levelName;
-            SetLevelGoals(levels[index]);
+
+            // ĐẢM BẢO GOAL MANAGER TỒN TẠI TRƯỚC KHI SET GOALS
+            if (GoalManager.Instance != null)
+            {
+                SetLevelGoals(levels[index]);
+            }
+            else
+            {
+                Debug.LogError("GoalManager.Instance is null!");
+                // Tìm GoalManager trong scene
+                GoalManager goalManager = FindObjectOfType<GoalManager>();
+                if (goalManager != null)
+                {
+                    SetLevelGoals(levels[index]);
+                }
+            }
+
             Debug.Log($"Loaded level: {levels[index].levelName}");
         }
     }

@@ -93,6 +93,27 @@ public class Cell : MonoBehaviour
             blocks.Remove(corner);
         }
     }
+
+    public void RemoveBlocksOfColorWithoutGoal(int colorID)
+    {
+        List<string> cornersToRemove = new List<string>();
+
+        foreach (var pair in blocks)
+        {
+            BlockColor bc = pair.Value.GetComponent<BlockColor>();
+            if (bc != null && bc.colorID == colorID)
+            {
+                Destroy(pair.Value);
+                cornersToRemove.Add(pair.Key);
+            }
+        }
+
+        foreach (string corner in cornersToRemove)
+        {
+            blocks.Remove(corner);
+        }
+    }
+
     public void ClearAllBlocks()
     {
         foreach (var block in blocks.Values)

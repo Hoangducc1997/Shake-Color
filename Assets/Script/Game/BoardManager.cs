@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
+using static DraggableCell;
 
 public class BoardManager : MonoBehaviour
 {
@@ -244,11 +245,70 @@ public class BoardManager : MonoBehaviour
         if (matchedCells.Count >= 2)
         {
             PlayExplosionEffects(matchedCells, colorID);
+
+            // 🚨 COMMENT DÒNG NÀY LẠI - ĐANG TRỪ GOAL 2 LẦN
+            // foreach (Cell matchedCell in matchedCells)
+            // {
+            //     matchedCell.RemoveBlocksOfColor(colorID);
+            // }
+
+            // ✅ CHỈ XÓA BLOCK, KHÔNG TRỪ GOAL
             foreach (Cell matchedCell in matchedCells)
             {
-                matchedCell.RemoveBlocksOfColor(colorID);
+                matchedCell.RemoveBlocksOfColorWithoutGoal(colorID);
             }
+
             Debug.Log($"Cleared {matchedCells.Count} cells of color {colorID}");
+        }
+    }
+
+    private void RemoveMatchedBlocks(List<BlockInfo> blocksToRemove)
+    {
+        StartCoroutine(RemoveMatchedBlocksCoroutine(blocksToRemove));
+    }
+
+    private IEnumerator RemoveMatchedBlocksCoroutine(List<BlockInfo> blocksToRemove)
+    {
+        // DELAY 1 GIÂY
+        yield return new WaitForSeconds(1f);
+
+        if (blocksToRemove.Count > 0)
+        {
+            // CHỈ LẤY MÀU CỦA BLOCK ĐẦU TIÊN
+            int colorID = blocksToRemove[0].colorID;
+
+            // XÓA TẤT CẢ BLOCK
+            foreach (BlockInfo blockInfo in blocksToRemove)
+            {
+                if (blockInfo.cell != null && blockInfo.block != null)
+                {
+                    blockInfo.cell.RemoveBlock(blockInfo.corner);
+                    Destroy(blockInfo.block);
+                }
+            }
+
+            // CHỈ TRỪ 1 GOAL
+            GoalManager.Instance.SubtractTargetScore(colorID, 1);
+            Debug.Log($"Match! Subtracted 1 goal for color {colorID}");
+        }
+    }
+    private IEnumerator RemoveBlocksWithDelay(List<Cell> matchedCells, int colorID)
+    {
+        // DELAY 1 GIÂY TRƯỚC KHI TRỪ GOAL
+        yield return new WaitForSeconds(1f);
+
+        // ĐẾM SỐ BLOCK ĐƯỢC XÓA
+        int blocksRemoved = 0;
+        foreach (Cell matchedCell in matchedCells)
+        {
+            blocksRemoved += matchedCell.GetBlocksOfColor(colorID).Count;
+            matchedCell.RemoveBlocksOfColor(colorID);
+        }
+
+        // TRỪ GOAL SAU KHI DELAY
+        if (GoalManager.Instance != null)
+        {
+            GoalManager.Instance.SubtractTargetScore(colorID, blocksRemoved);
         }
     }
 
@@ -414,7 +474,7 @@ public class BoardManager : MonoBehaviour
             }
         }
     }
-   
+
 
     public List<Cell> GetNeighborCells(Cell centerCell)
     {
@@ -502,13 +562,16 @@ public class BoardManager : MonoBehaviour
         Debug.Log($"Designed check: {cellsWithBlocks}/{expectedCells} have blocks");
         if (cellsWithBlocks == expectedCells)
         {
-            Debug.Log("🎮 GAME OVER - BOARD IS FULL!");
-            ShowGameOver();
+            Debug.Log("GAME OVER - BOARD IS FULL!");
+
+            StartCoroutine(ShowGameOverWithDelay(1.2f));
         }
     }
 
-    private void ShowGameOver()
+
+    private System.Collections.IEnumerator ShowGameOverWithDelay(float delay)
     {
+        yield return new WaitForSeconds(delay);
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(true);

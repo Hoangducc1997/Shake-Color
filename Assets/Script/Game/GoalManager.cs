@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
+using System.Collections;
 
 public class GoalManager : MonoBehaviour
 {
@@ -12,6 +13,12 @@ public class GoalManager : MonoBehaviour
     public int targetBlueScore = 0;
     public int targetPurpleScore = 0;
     public int targetYellowScore = 0;
+
+    // Lưu trữ điểm mục tiêu gốc để reset
+    private int originalRedScore = 0;
+    private int originalBlueScore = 0;
+    private int originalPurpleScore = 0;
+    private int originalYellowScore = 0;
 
     [SerializeField] private TextMeshProUGUI redTargetText;
     [SerializeField] private TextMeshProUGUI blueTargetText;
@@ -31,15 +38,45 @@ public class GoalManager : MonoBehaviour
     {
         Instance = this;
     }
+
     private void Start()
     {
+        // LƯU LẠI ĐIỂM MỤC TIÊU GỐC ĐỂ RESET
+        originalRedScore = targetRedScore;
+        originalBlueScore = targetBlueScore;
+        originalPurpleScore = targetPurpleScore;
+        originalYellowScore = targetYellowScore;
+
         UpdateUI();
         victoryPanel.SetActive(false);
     }
 
     public void SubtractTargetScore(int colorID, int amount = 1)
     {
-        // So sánh colorID với config
+        StartCoroutine(SubtractTargetScoreWithEffects(colorID, amount));
+    }
+
+    private IEnumerator SubtractTargetScoreWithEffects(int colorID, int amount)
+    {
+        // DELAY 1 GIÂY TRƯỚC KHI TRỪ GOAL
+        yield return new WaitForSeconds(1f);
+
+        // LẤY TEXT TƯƠNG ỨNG VỚI MÀU
+        TextMeshProUGUI targetText = GetTargetTextByColorID(colorID);
+
+        if (targetText != null)
+        {
+            // HIỆU ỨNG SHAKE/RUNG
+            StartCoroutine(ShakeGoalText(targetText));
+
+            // ĐỔI MÀU TEXT TẠM THỜI
+            StartCoroutine(FlashTextColor(targetText, GetColorByID(colorID)));
+
+            // PHÁT ÂM THANH
+            AudioManager.Instance.PlayVFX("Pop");
+        }
+
+        // TRỪ ĐIỂM
         if (colorID == redColorID)
         {
             targetRedScore = Mathf.Max(0, targetRedScore - amount);
@@ -56,8 +93,86 @@ public class GoalManager : MonoBehaviour
         {
             targetYellowScore = Mathf.Max(0, targetYellowScore - amount);
         }
+
         UpdateUI();
         CheckLevelCompletion();
+    }
+
+    private TextMeshProUGUI GetTargetTextByColorID(int colorID)
+    {
+        if (colorID == redColorID) return redTargetText;
+        if (colorID == blueColorID) return blueTargetText;
+        if (colorID == purpleColorID) return purpleTargetText;
+        if (colorID == yellowColorID) return yellowTargetText;
+        return null;
+    }
+
+    // HIỆU ỨNG SHAKE/RUNG - GIỮ NGUYÊN NHƯ CŨ
+    private IEnumerator ShakeGoalText(TextMeshProUGUI text)
+    {
+        Vector3 originalPosition = text.transform.localPosition;
+        float shakeDuration = 0.3f;
+        float shakeMagnitude = 5f;
+
+        float elapsed = 0f;
+
+        while (elapsed < shakeDuration)
+        {
+            float x = Random.Range(-1f, 1f) * shakeMagnitude;
+            float y = Random.Range(-1f, 1f) * shakeMagnitude;
+
+            text.transform.localPosition = originalPosition + new Vector3(x, y, 0);
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        text.transform.localPosition = originalPosition;
+    }
+
+    // HIỆU ỨNG ĐỔI MÀU TEXT
+    private IEnumerator FlashTextColor(TextMeshProUGUI text, Color flashColor)
+    {
+        Color originalColor = text.color;
+        float flashDuration = 0.2f;
+
+        // ĐỔI MÀU
+        text.color = flashColor;
+        yield return new WaitForSeconds(flashDuration);
+
+        // TRỞ LẠI MÀU BAN ĐẦU
+        text.color = originalColor;
+    }
+
+    private Color GetColorByID(int colorID)
+    {
+        switch (colorID)
+        {
+            case 0: return Color.red;
+            case 1: return Color.blue;
+            case 2: return new Color(0.5f, 0f, 0.5f); // Purple
+            case 3: return Color.yellow;
+            default: return Color.white;
+        }
+    }
+
+    /// <summary>
+    /// Set goals mới và lưu làm giá trị gốc
+    /// </summary>
+    public void SetTargets(int red, int blue, int purple, int yellow)
+    {
+        targetRedScore = red;
+        targetBlueScore = blue;
+        targetPurpleScore = purple;
+        targetYellowScore = yellow;
+
+        // CẬP NHẬT GIÁ TRỊ GỐC ĐỂ RESET
+        originalRedScore = red;
+        originalBlueScore = blue;
+        originalPurpleScore = purple;
+        originalYellowScore = yellow;
+
+        UpdateUI();
+        Debug.Log($"Goals set to: R{red} B{blue} P{purple} Y{yellow}");
     }
 
     private void UpdateUI()
@@ -74,35 +189,32 @@ public class GoalManager : MonoBehaviour
         {
             if (LevelManager.Instance != null)
             {
-                // 0 pause game ngay lập tức
                 ShowLevelCompletePopup();
             }
             else
             {
-                Victory(); 
+                Victory();
             }
         }
     }
 
     private void ShowLevelCompletePopup()
-    {               
-        StartCoroutine(ShowVictoryWithDelay(1.5f));
+    {
+        StartCoroutine(ShowVictoryWithDelay(1.2f));
         AudioManager.Instance.PlayVFX("Victory");
         Debug.Log("Hoàn thành level! Nhấn tiếp tục để chơi level tiếp theo.");
     }
 
-    // Hiện victory chậm hơn
     private System.Collections.IEnumerator ShowVictoryWithDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
         victoryPanel.SetActive(true);
     }
 
-    // Thêm method để tiếp tục game
     public void ContinueToNextLevel()
     {
         victoryPanel.SetActive(false);
-        Time.timeScale = 1f; // Đảm bảo game không bị pause
+        Time.timeScale = 1f;
         LevelManager.Instance.CompleteLevel();
     }
 
@@ -110,9 +222,9 @@ public class GoalManager : MonoBehaviour
     {
         victoryPanel.SetActive(true);
         Debug.Log("Chiến thắng! Đã hoàn thành tất cả mục tiêu!");
-        // Có thể pause game ở đây vì đã hoàn thành toàn bộ game
         Time.timeScale = 0f;
     }
+
     public bool IsTargetCompleted()
     {
         return targetRedScore <= 0 &&
@@ -120,19 +232,24 @@ public class GoalManager : MonoBehaviour
                targetPurpleScore <= 0 &&
                targetYellowScore <= 0;
     }
-    public void SetTargets(int red, int blue, int purple, int yellow)
-    {
-        targetRedScore = red;
-        targetBlueScore = blue;
-        targetPurpleScore = purple;
-        targetYellowScore = yellow;
-        UpdateUI();
-    }
+
     public void SetColorIDs(int redID, int blueID, int purpleID, int yellowID)
     {
         redColorID = redID;
         blueColorID = blueID;
         purpleColorID = purpleID;
         yellowColorID = yellowID;
+    }
+
+    public void ResetGoals()
+    {
+        targetRedScore = originalRedScore;
+        targetBlueScore = originalBlueScore;
+        targetPurpleScore = originalPurpleScore;
+        targetYellowScore = originalYellowScore;
+
+        UpdateUI();
+        victoryPanel.SetActive(false);
+        Debug.Log("Goals reset to original values");
     }
 }

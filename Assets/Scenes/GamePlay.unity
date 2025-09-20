@@ -2786,34 +2786,34 @@ MonoBehaviour:
   levels:
   - levelName: Level 1
     levelObj: {fileID: 1623720955}
-    redTarget: 1
-    blueTarget: 0
+    redTarget: 2
+    blueTarget: 2
     purpleTarget: 0
-    yellowTarget: 1
+    yellowTarget: 0
   - levelName: Level 2
     levelObj: {fileID: 197406570}
-    redTarget: 2
-    blueTarget: 1
-    purpleTarget: 1
-    yellowTarget: 1
-  - levelName: Level 3
-    levelObj: {fileID: 919971900}
     redTarget: 2
     blueTarget: 2
     purpleTarget: 2
     yellowTarget: 2
+  - levelName: Level 3
+    levelObj: {fileID: 919971900}
+    redTarget: 2
+    blueTarget: 2
+    purpleTarget: 4
+    yellowTarget: 4
   - levelName: Level 4
     levelObj: {fileID: 1961574963}
-    redTarget: 3
-    blueTarget: 3
-    purpleTarget: 2
-    yellowTarget: 2
+    redTarget: 4
+    blueTarget: 4
+    purpleTarget: 4
+    yellowTarget: 4
   - levelName: Level 5
     levelObj: {fileID: 1977687122}
-    redTarget: 3
-    blueTarget: 3
-    purpleTarget: 3
-    yellowTarget: 3
+    redTarget: 4
+    blueTarget: 4
+    purpleTarget: 6
+    yellowTarget: 6
   currentLevelIndex: 0
 --- !u!114 &1180459023
 MonoBehaviour:
@@ -2828,7 +2828,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameOverPanel: {fileID: 0}
-  victoryPanel: {fileID: 0}
+  victoryPanel: {fileID: 1486387545}
 --- !u!114 &1180459024
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2850,6 +2850,7 @@ MonoBehaviour:
   purpleTargetText: {fileID: 1950418655}
   yellowTargetText: {fileID: 843715287}
   victoryPanel: {fileID: 1486387545}
+  explosionEffectPrefab: {fileID: 0}
   redColorID: 0
   blueColorID: 1
   purpleColorID: 2

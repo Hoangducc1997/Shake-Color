@@ -52,7 +52,7 @@ public class ExplosionEffect : MonoBehaviour
         }
     }
 
-    // 🔥 TỰ ĐỘNG KÍCH HOẠT KHI BỊ DESTROY
+    // Tự động dừng coroutine khi object bị destroy
     private void OnDestroy()
     {
         StopAllCoroutines();

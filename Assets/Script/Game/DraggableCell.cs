@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using static DraggableCell;
 
 public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -252,8 +254,11 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     private List<BlockInfo> CheckForMatchesWithExistingBlocks(Cell newCell)
     {
         List<BlockInfo> blocksToRemove = new List<BlockInfo>();
+
+        // CHỈ KIỂM TRA CÁC BLOCK TRÊN BOARD, KHÔNG KIỂM TRA BLOCK TRÊN SPAWNER
         foreach (Cell boardCell in boardManager.GetAllCells())
         {
+            // BỎ QUA CELL MỚI ĐƯỢC THẢ VÀO (vì nó chưa có trong board)
             if (boardCell == newCell) continue;
 
             foreach (var pair in boardCell.blocks)
@@ -269,6 +274,37 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         return blocksToRemove;
     }
 
+    private IEnumerator RemoveMatchedBlocksCoroutine(List<BlockInfo> blocksToRemove)
+    {
+        yield return new WaitForSeconds(1f);
+
+        if (blocksToRemove.Count >= 2) // CHỈ XỬ LÝ NẾU CÓ ÍT NHẤT 2 BLOCK
+        {
+            int colorID = blocksToRemove[0].colorID;
+            int uniqueCells = 0;
+            HashSet<Cell> processedCells = new HashSet<Cell>();
+
+            // XÓA BLOCK VÀ ĐẾM SỐ CELL UNIQUE
+            foreach (BlockInfo blockInfo in blocksToRemove)
+            {
+                if (blockInfo.cell != null && blockInfo.block != null)
+                {
+                    if (!processedCells.Contains(blockInfo.cell))
+                    {
+                        uniqueCells++;
+                        processedCells.Add(blockInfo.cell);
+                    }
+
+                    blockInfo.cell.RemoveBlock(blockInfo.corner);
+                    Destroy(blockInfo.block);
+                }
+            }
+
+            // 🎯 CHỈ TRỪ 1 GOAL CHO MỖI LẦN MATCH
+            GoalManager.Instance.SubtractTargetScore(colorID, 1);
+            Debug.Log($"Match: {uniqueCells} cells, subtracted 1 goal for color {colorID}");
+        }
+    }
     private void CheckMatchesWithNewCell(Cell boardCell, string boardCorner, int boardColorID, Cell newCell, List<BlockInfo> blocksToRemove)
     {
         foreach (var newPair in newCell.blocks)
@@ -280,12 +316,14 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             {
                 if (AreBlocksAdjacent(boardCell, boardCorner, newCell, newPair.Key))
                 {
+                    // THÊM CẢ HAI BLOCK: block từ BOARD VÀ block từ SPAWNER
                     AddBlockToRemoveList(boardCell, boardCorner, boardColorID, blocksToRemove);
                     AddBlockToRemoveList(newCell, newPair.Key, boardColorID, blocksToRemove);
                 }
             }
         }
     }
+
     private bool AreBlocksAdjacent(Cell cell1, string corner1, Cell cell2, string corner2)
     {
         int index1 = cell1.transform.GetSiblingIndex();
@@ -330,6 +368,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         }
         return false;
     }
+
     private void RemoveMatchedBlocks(List<BlockInfo> blocksToRemove)
     {
         Dictionary<int, int> colorCount = new Dictionary<int, int>();
@@ -377,6 +416,7 @@ public class DraggableCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             }
         }
     }
+
 
     private void ResetAllSpawners()
     {
