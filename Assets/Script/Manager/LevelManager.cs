@@ -26,8 +26,14 @@ public class LevelManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void Start()
@@ -39,14 +45,14 @@ public class LevelManager : MonoBehaviour
     {
         if (index < 0 || index >= levels.Length) return;
 
-        //Tắt all Lv
+        // Tắt all level
         foreach (LevelData level in levels)
         {
             if (level.levelObj != null)
                 level.levelObj.SetActive(false);
         }
 
-        // Bật Lv hiện tại
+        // Bật level hiện tại
         if (levels[index].levelObj != null)
         {
             levels[index].levelObj.SetActive(true);
@@ -56,25 +62,11 @@ public class LevelManager : MonoBehaviour
                 levelBoard.SetAsActiveBoard();
             }
             currentLevelIndex = index;
+
             if (levelText != null)
                 levelText.text = " " + levels[index].levelName;
 
-            // ĐẢM BẢO GOAL MANAGER TỒN TẠI TRƯỚC KHI SET GOALS
-            if (GoalManager.Instance != null)
-            {
-                SetLevelGoals(levels[index]);
-            }
-            else
-            {
-                Debug.LogError("GoalManager.Instance is null!");
-                // Tìm GoalManager trong scene
-                GoalManager goalManager = FindObjectOfType<GoalManager>();
-                if (goalManager != null)
-                {
-                    SetLevelGoals(levels[index]);
-                }
-            }
-
+            SetLevelGoals(levels[index]);
             Debug.Log($"Loaded level: {levels[index].levelName}");
         }
     }
@@ -89,6 +81,10 @@ public class LevelManager : MonoBehaviour
                 levelData.purpleTarget,
                 levelData.yellowTarget
             );
+        }
+        else
+        {
+            Debug.LogError("GoalManager.Instance is null!");
         }
     }
 
@@ -109,7 +105,6 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    // Method check level hiện tại đã hoàn thành hay chưa
     public bool IsCurrentLevelCompleted()
     {
         if (GoalManager.Instance != null)

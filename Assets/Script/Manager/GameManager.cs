@@ -41,13 +41,19 @@ public class GameManager : MonoBehaviour
 
         if (gameOverPanel) gameOverPanel.SetActive(false);
         if (victoryPanel) victoryPanel.SetActive(false);
+
+        // 🎯 QUAN TRỌNG: RESET GOALS
+        if (GoalManager.Instance != null)
+        {
+            GoalManager.Instance.ResetGoals();
+        }
+
         if (BoardManager.ActiveBoard != null)
         {
             BoardManager.ActiveBoard.ResetBoard();
         }
         else if (BoardManager.Instances.Count > 0)
         {
-            // Fallback: dùng board đầu tiên nếu không có active board
             BoardManager.Instances[0].ResetBoard();
         }
 

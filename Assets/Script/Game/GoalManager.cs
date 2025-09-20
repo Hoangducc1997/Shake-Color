@@ -41,11 +41,13 @@ public class GoalManager : MonoBehaviour
 
     private void Start()
     {
-        // LƯU LẠI ĐIỂM MỤC TIÊU GỐC ĐỂ RESET
+        // Lưu lại điểm mục tiêu gốc để reset
         originalRedScore = targetRedScore;
         originalBlueScore = targetBlueScore;
         originalPurpleScore = targetPurpleScore;
         originalYellowScore = targetYellowScore;
+
+        Debug.Log($"Original goals saved: R{originalRedScore} B{originalBlueScore} P{originalPurpleScore} Y{originalYellowScore}");
 
         UpdateUI();
         victoryPanel.SetActive(false);
@@ -106,6 +108,7 @@ public class GoalManager : MonoBehaviour
         if (colorID == yellowColorID) return yellowTargetText;
         return null;
     }
+
 
     // HIỆU ỨNG SHAKE/RUNG - GIỮ NGUYÊN NHƯ CŨ
     private IEnumerator ShakeGoalText(TextMeshProUGUI text)
@@ -250,6 +253,6 @@ public class GoalManager : MonoBehaviour
 
         UpdateUI();
         victoryPanel.SetActive(false);
-        Debug.Log("Goals reset to original values");
+        Debug.Log($"Goals reset to: R{originalRedScore} B{originalBlueScore} P{originalPurpleScore} Y{originalYellowScore}");
     }
 }
