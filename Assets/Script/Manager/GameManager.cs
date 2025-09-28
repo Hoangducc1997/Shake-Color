@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     [Header("UI Panels")]
     public GameObject gameOverPanel;
     public GameObject victoryPanel;
+    public GameObject settingPanel;
 
     private void Awake()
     {
@@ -15,6 +16,7 @@ public class GameManager : MonoBehaviour
 
         if (gameOverPanel) gameOverPanel.SetActive(false);
         if (victoryPanel) victoryPanel.SetActive(false);
+        if (settingPanel) settingPanel.SetActive(false);
     }
 
     public void GameOver()

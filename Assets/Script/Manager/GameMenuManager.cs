@@ -18,7 +18,7 @@ public class GameMenuManager : MonoBehaviour
     public void StartGame()
     {
         AudioManager.Instance.PlayVFX("Choose");
-        SceneManager.LoadScene("GamePlay");
+        SceneManager.LoadScene("Tutorial");
     }
 
     public void ExitGame()
